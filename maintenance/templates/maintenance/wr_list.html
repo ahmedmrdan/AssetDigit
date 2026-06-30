@@ -1,0 +1,78 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Work Requests — MaintenePro{% endblock %}
+{% block page_title %}Work Requests{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>Work Requests ({{ wrs.count }})</h2>
+  <a href="{% url 'wr_create' %}" class="btn btn-primary">+ New Work Request</a>
+</div>
+
+<form method="get" class="filters">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search WR#, title, reporter, alarm code..." style="width:300px">
+  <select name="priority">
+    <option value="">All Priorities</option>
+    <option value="Critical" {% if selected_priority == 'Critical' %}selected{% endif %}>Critical</option>
+    <option value="High"     {% if selected_priority == 'High'     %}selected{% endif %}>High</option>
+    <option value="Medium"   {% if selected_priority == 'Medium'   %}selected{% endif %}>Medium</option>
+    <option value="Low"      {% if selected_priority == 'Low'      %}selected{% endif %}>Low</option>
+  </select>
+  <select name="status">
+    <option value="">All Status</option>
+    <option value="New"          {% if selected_status == 'New'          %}selected{% endif %}>New</option>
+    <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+    <option value="Approved"     {% if selected_status == 'Approved'     %}selected{% endif %}>Approved</option>
+    <option value="Rejected"     {% if selected_status == 'Rejected'     %}selected{% endif %}>Rejected</option>
+    <option value="Converted"    {% if selected_status == 'Converted'    %}selected{% endif %}>Converted to WO</option>
+  </select>
+  <button type="submit" class="btn">Filter</button>
+  <a href="{% url 'wr_list' %}" class="btn btn-outline">Clear</a>
+</form>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>WR#</th><th>Title</th><th>Machine/Asset</th><th>Alarm Type</th>
+        <th>Priority</th><th>Reported By</th><th>Breakdown Time</th><th>Status</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for wr in wrs %}
+      <tr>
+        <td><a href="{% url 'wr_detail' wr.pk %}" style="color:#e94560;font-weight:700;text-decoration:none">{{ wr.wr_number }}</a></td>
+        <td style="font-weight:500;max-width:190px">{{ wr.title|truncatechars:38 }}</td>
+        <td style="font-size:12px">{% if wr.asset %}{{ wr.asset.name|truncatechars:22 }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+        <td><span class="badge badge-gray" style="font-size:11px">{{ wr.alarm_type }}</span></td>
+        <td>
+          {% if wr.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>
+          {% elif wr.priority == 'High'   %}<span class="badge badge-danger" style="background:#fff0e6;color:#c05000">High</span>
+          {% elif wr.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>
+          {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+        </td>
+        <td style="font-size:12px">{{ wr.reported_by }}<br><span class="text-muted">{{ wr.reporter_department }}</span></td>
+        <td style="font-size:12px">{{ wr.breakdown_time|date:"d/m/Y H:i" }}</td>
+        <td>
+          {% if wr.status == 'New'          %}<span class="badge badge-info">New</span>
+          {% elif wr.status == 'Under Review'%}<span class="badge badge-warning">Under Review</span>
+          {% elif wr.status == 'Approved'   %}<span class="badge badge-success">Approved</span>
+          {% elif wr.status == 'Rejected'   %}<span class="badge badge-danger">Rejected</span>
+          {% elif wr.status == 'Converted'  %}<span class="badge badge-purple">Converted</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'wr_detail' wr.pk %}" class="btn btn-sm">View</a>
+          {% if wr.status != 'Converted' %}
+          <a href="{% url 'wr_convert' wr.pk %}" class="btn btn-sm btn-primary" title="Convert to Work Order">→ WO</a>
+          {% else %}
+          <a href="{% url 'wo_detail' wr.converted_to_wo.pk %}" class="btn btn-sm btn-success" title="View Work Order">📋 WO</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" style="text-align:center;padding:32px;color:#64748b">No work requests. <a href="{% url 'wr_create' %}">Submit the first one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

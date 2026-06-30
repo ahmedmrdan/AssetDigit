@@ -1,0 +1,28 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}ISO Documents{% endblock %}{% block page_title %}ISO Document Control{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>📄 ISO Documents ({{ docs.count }})</h2><a href="{% url 'iso_doc_create' %}" class="btn btn-primary">+ Add Document</a></div>
+<form method="get" class="filters">
+  <select name="standard"><option value="">All Standards</option><option value="ISO 9001">ISO 9001</option><option value="ISO 14001">ISO 14001</option><option value="ISO 55001">ISO 55001</option><option value="All">All Standards</option></select>
+  <select name="status"><option value="">All Status</option><option value="Approved">Approved</option><option value="Draft">Draft</option><option value="Review">Under Review</option><option value="Obsolete">Obsolete</option></select>
+  <select name="doc_type"><option value="">All Types</option><option value="Procedure">Procedure</option><option value="Work Instruction">Work Instruction</option><option value="Form">Form</option><option value="Record">Record</option><option value="Policy">Policy</option></select>
+  <button type="submit" class="btn">Filter</button>
+  <a href="{% url 'iso_doc_list' %}" class="btn">Clear</a>
+</form>
+<div class="card"><table>
+  <thead><tr><th>Doc No.</th><th>Title</th><th>Type</th><th>Standard</th><th>Clause</th><th>Dept</th><th>Rev</th><th>Status</th><th>Next Review</th><th>Actions</th></tr></thead>
+  <tbody>{% for d in docs %}
+  <tr>
+    <td style="font-weight:700;color:#2563eb;font-size:12px">{{ d.doc_number }}</td>
+    <td style="font-weight:500;max-width:200px">{{ d.title|truncatechars:45 }}</td>
+    <td><span class="badge badge-gray" style="font-size:10px">{{ d.doc_type }}</span></td>
+    <td><span class="badge badge-purple" style="font-size:10px">{{ d.iso_standard }}</span></td>
+    <td style="font-size:11px;font-family:monospace">{{ d.iso_clause|default:"—" }}</td>
+    <td style="font-size:12px;color:#64748b">{{ d.department|default:"—" }}</td>
+    <td style="text-align:center"><span class="badge badge-gray">Rev.{{ d.revision }}</span></td>
+    <td>{% if d.status == 'Approved' %}<span class="badge badge-success">Approved</span>{% elif d.status == 'Draft' %}<span class="badge badge-gray">Draft</span>{% elif d.status == 'Review' %}<span class="badge badge-warning">Review</span>{% else %}<span class="badge badge-danger">Obsolete</span>{% endif %}</td>
+    <td style="font-size:12px;{% if d.is_due_for_review %}color:#dc2626;font-weight:700{% endif %}">{{ d.review_date|date:"d/m/Y"|default:"—" }}</td>
+    <td><a href="{% url 'iso_doc_edit' d.pk %}" class="btn btn-sm">Edit</a><a href="{% url 'iso_doc_delete' d.pk %}" class="btn btn-sm" style="color:#dc2626">Del</a></td>
+  </tr>
+  {% empty %}<tr><td colspan="10" style="text-align:center;padding:32px;color:#64748b">No documents yet. <a href="{% url 'iso_doc_create' %}">Add first document</a>.</td></tr>{% endfor %}</tbody>
+</table></div>{% endblock %}

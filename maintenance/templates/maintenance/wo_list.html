@@ -1,0 +1,73 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Work Orders — MaintenePro{% endblock %}
+{% block page_title %}Work Orders{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>Work Orders ({{ wos.count }})</h2>
+  <a href="{% url 'wo_create' %}" class="btn btn-primary">+ New Work Order</a>
+</div>
+
+<form method="get" class="filters">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search WO#, title, technician..." style="width:280px">
+  <select name="priority">
+    <option value="">All Priorities</option>
+    <option value="Critical" {% if selected_priority == 'Critical' %}selected{% endif %}>Critical</option>
+    <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>Medium</option>
+    <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>Low</option>
+  </select>
+  <select name="status">
+    <option value="">All Status</option>
+    <option value="Open" {% if selected_status == 'Open' %}selected{% endif %}>Open</option>
+    <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+    <option value="On Hold" {% if selected_status == 'On Hold' %}selected{% endif %}>On Hold</option>
+    <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Completed</option>
+  </select>
+  <button type="submit" class="btn">Filter</button>
+  <a href="{% url 'wo_list' %}" class="btn btn-outline">Clear</a>
+</form>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>WO#</th><th>Title</th><th>Asset</th><th>Type</th>
+        <th>Priority</th><th>Assigned To</th><th>Due Date</th><th>Status</th><th>⏱️ Cycle Time</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for wo in wos %}
+      <tr>
+        <td><a href="{% url 'wo_detail' wo.pk %}" style="color:#2563eb;font-weight:700;text-decoration:none">{{ wo.wo_number }}</a></td>
+        <td style="font-weight:500;max-width:200px">{{ wo.title|truncatechars:40 }}</td>
+        <td class="text-muted">{% if wo.asset %}{{ wo.asset.asset_id }}{% else %}—{% endif %}</td>
+        <td><span class="badge badge-gray">{{ wo.wo_type }}</span></td>
+        <td>
+          {% if wo.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>
+          {% elif wo.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>
+          {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+        </td>
+        <td class="text-muted">{{ wo.assigned_to|default:"—" }}</td>
+        <td class="{% if wo.is_overdue %}overdue{% endif %}">{{ wo.due_date|date:"d/m/Y"|default:"—" }}</td>
+        <td>
+          {% if wo.status == 'Open' %}<span class="badge badge-info">Open</span>
+          {% elif wo.status == 'In Progress' %}<span class="badge badge-warning">In Progress</span>
+          {% elif wo.status == 'Completed' %}<span class="badge badge-success">Completed</span>
+          {% elif wo.status == 'On Hold' %}<span class="badge badge-purple">On Hold</span>
+          {% else %}<span class="badge badge-gray">{{ wo.status }}</span>{% endif %}
+        </td>
+        <td style="font-size:12px;{% if wo.cycle_time_display %}color:#16a34a;font-weight:600{% else %}color:#94a3b8{% endif %}">
+          {{ wo.cycle_time_display|default:"—" }}
+        </td>
+        <td>
+          <a href="{% url 'wo_detail' wo.pk %}" class="btn btn-sm">View</a>
+          <a href="{% url 'wo_edit' wo.pk %}" class="btn btn-sm">Edit</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="10" style="text-align:center;padding:32px;color:#64748b">No work orders found. <a href="{% url 'wo_create' %}">Create the first one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

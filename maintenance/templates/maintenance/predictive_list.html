@@ -1,0 +1,49 @@
+{% extends 'maintenance/base.html' %}
+{% load i18n %}{% get_current_language as CURRENT_LANG %}
+{% block title %}Predictive Maintenance{% endblock %}
+{% block page_title %}Predictive Maintenance{% endblock %}
+{% block content %}
+<div class="page-actions">
+  <h2>📈 {% if CURRENT_LANG == 'ar' %}الصيانة التنبؤية{% else %}Predictive Maintenance{% endif %} ({{ records.count }})</h2>
+  <a href="{% url 'predictive_create' %}" class="btn btn-primary">+ Add Reading</a>
+</div>
+<div class="stats-grid" style="margin-bottom:16px">
+  <div class="stat-card danger"><div class="label">🚨 Critical</div><div class="value">{{ critical }}</div></div>
+  <div class="stat-card warning"><div class="label">⚠️ Warning</div><div class="value">{{ warning }}</div></div>
+  <div class="stat-card success"><div class="label">✅ Total Records</div><div class="value">{{ records.count }}</div></div>
+</div>
+<form method="get" class="filters">
+  <select name="asset"><option value="">All Assets</option>{% for a in assets %}<option value="{{ a.id }}" {% if selected_asset == a.id|stringformat:"s" %}selected{% endif %}>{{ a.name }}</option>{% endfor %}</select>
+  <select name="condition"><option value="">All Conditions</option><option value="Good">✅ Good</option><option value="Warning">⚠️ Warning</option><option value="Critical">🚨 Critical</option><option value="Failed">❌ Failed</option></select>
+  <button type="submit" class="btn">Filter</button>
+  <a href="{% url 'predictive_list' %}" class="btn">Clear</a>
+</form>
+<div class="card"><table>
+  <thead><tr><th>Asset</th><th>Parameter</th><th>Value</th><th>Normal Range</th><th>Condition</th><th>Recorded By</th><th>Date/Time</th><th>Notes</th><th></th></tr></thead>
+  <tbody>
+  {% for r in records %}
+  <tr>
+    <td style="font-weight:500">{{ r.asset.name }}</td>
+    <td><span class="badge badge-gray">{{ r.get_parameter_display }}</span></td>
+    <td style="font-weight:700;font-size:15px">{{ r.value }} {{ r.unit }}</td>
+    <td style="font-size:12px;color:#64748b">{% if r.normal_min and r.normal_max %}{{ r.normal_min }} – {{ r.normal_max }}{% else %}—{% endif %}</td>
+    <td>
+      {% if r.condition == 'Good'     %}<span class="badge badge-success">✅ Good</span>
+      {% elif r.condition == 'Warning' %}<span class="badge badge-warning">⚠️ Warning</span>
+      {% elif r.condition == 'Critical'%}<span class="badge badge-danger">🚨 Critical</span>
+      {% else %}<span class="badge badge-danger">❌ Failed</span>{% endif %}
+    </td>
+    <td style="font-size:12px">{{ r.recorded_by|default:"—" }}</td>
+    <td style="font-size:12px">{{ r.recorded_at|date:"d/m/Y H:i" }}</td>
+    <td style="font-size:12px;color:#64748b">{{ r.notes|truncatechars:40 }}</td>
+    <td>
+      <form method="post" action="{% url 'predictive_delete' r.pk %}" style="display:inline">{% csrf_token %}
+        <button type="submit" class="btn btn-sm" style="color:#dc2626" onclick="return confirm('Delete this record?')">Del</button>
+      </form>
+    </td>
+  </tr>
+  {% empty %}<tr><td colspan="9" style="text-align:center;padding:32px;color:#64748b">No readings recorded yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }}{% endblock %}{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>{{ title }}</h2><a href="{% url 'audit_list' %}" class="btn">← Back</a></div>
+<div class="card"><div class="card-body"><form method="post">{% csrf_token %}
+  <div class="form-grid">
+    <div class="form-group col-span-2"><label>Title *</label>{{ form.title }}</div>
+    <div class="form-group"><label>ISO Standard *</label>{{ form.iso_standard }}</div>
+    <div class="form-group"><label>Audit Type</label>{{ form.audit_type }}</div>
+    <div class="form-group"><label>Department *</label>{{ form.department }}</div>
+    <div class="form-group"><label>Clauses to Audit</label>{{ form.clauses_audited }}</div>
+    <div class="form-group"><label>Lead Auditor *</label>{{ form.lead_auditor }}</div>
+    <div class="form-group"><label>Auditee</label>{{ form.auditee }}</div>
+    <div class="form-group"><label>Audit Team</label>{{ form.audit_team }}</div>
+    <div class="form-group"><label>Planned Date *</label>{{ form.planned_date }}</div>
+    <div class="form-group"><label>Actual Date</label>{{ form.actual_date }}</div>
+    <div class="form-group"><label>Duration (hrs)</label>{{ form.duration_hours }}</div>
+    <div class="form-group"><label>Status</label>{{ form.status }}</div>
+    <div class="form-group"><label>Major NCs Found</label>{{ form.major_nc_count }}</div>
+    <div class="form-group"><label>Minor NCs Found</label>{{ form.minor_nc_count }}</div>
+    <div class="form-group"><label>Observations</label>{{ form.observation_count }}</div>
+    <div class="form-group"><label>OFIs</label>{{ form.ofi_count }}</div>
+    <div class="form-group"><label>Overall Result</label>{{ form.overall_result }}</div>
+    <div class="form-group"><label>Next Audit Date</label>{{ form.next_audit_date }}</div>
+    <div class="form-group col-span-2"><label>Scope</label>{{ form.scope }}</div>
+    <div class="form-group col-span-2"><label>Checklist & Notes</label>{{ form.checklist_notes }}</div>
+    <div class="form-group col-span-2"><label>Summary</label>{{ form.summary }}</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">Save Audit</button>
+    <a href="{% url 'audit_list' %}" class="btn">Cancel</a>
+  </div>
+</form></div></div>{% endblock %}

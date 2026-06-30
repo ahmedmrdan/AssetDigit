@@ -1,0 +1,130 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Convert to Work Order — MaintenePro{% endblock %}
+{% block page_title %}Convert Work Request to Work Order{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>⚡ Convert to Work Order</h2>
+  <a href="{% url 'wr_detail' wr.pk %}" class="btn">← Back to {{ wr.wr_number }}</a>
+</div>
+
+<!-- WR Summary Banner -->
+<div class="card" style="border-left:4px solid #e94560;margin-bottom:20px">
+  <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Work Request</div>
+      <div style="font-size:15px;font-weight:700;color:#e94560">{{ wr.wr_number }}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Machine</div>
+      <div style="font-size:14px;font-weight:600">{{ wr.asset.name|default:"N/A" }}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Alarm Type</div>
+      <div><span class="badge badge-danger">{{ wr.alarm_type }}</span></div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Alarm Code</div>
+      <div style="font-family:monospace;font-weight:700;color:#dc2626;font-size:14px">{{ wr.alarm_code|default:"—" }}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Breakdown Time</div>
+      <div style="font-size:13px;font-weight:600">{{ wr.breakdown_time|date:"d/m/Y H:i" }}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Reported By</div>
+      <div style="font-size:13px">{{ wr.reported_by }} — {{ wr.reporter_department }}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Priority</div>
+      {% if wr.priority == 'Critical' %}<span class="badge badge-danger">🚨 Critical</span>
+      {% elif wr.priority == 'High'   %}<span class="badge badge-danger" style="background:#fff0e6;color:#c05000">🔴 High</span>
+      {% elif wr.priority == 'Medium' %}<span class="badge badge-warning">🟡 Medium</span>
+      {% else %}<span class="badge badge-gray">🟢 Low</span>{% endif %}
+    </div>
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:3px">Downtime</div>
+      <div style="font-size:13px;font-weight:600;color:#dc2626">{{ wr.downtime_hours|default:"?" }} hrs</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Problem Summary -->
+  <div>
+    <div class="card">
+      <div class="card-header"><h3>Problem Description</h3></div>
+      <div class="card-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;color:#374151">{{ wr.description }}</div>
+    </div>
+    {% if wr.symptoms %}
+    <div class="card">
+      <div class="card-header"><h3>Symptoms</h3></div>
+      <div class="card-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;color:#374151">{{ wr.symptoms }}</div>
+    </div>
+    {% endif %}
+    {% if wr.production_impact %}
+    <div class="card" style="border-left:3px solid #dc2626">
+      <div class="card-header"><h3>⚠️ Production Impact</h3></div>
+      <div class="card-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;color:#374151">{{ wr.production_impact }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Convert Form -->
+  <div>
+    <div class="card" style="border:2px solid #e94560">
+      <div class="card-header" style="background:#fff5f7">
+        <h3 style="color:#e94560">⚡ Work Order Details</h3>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#15803d">
+            ✅ All breakdown information from <strong>{{ wr.wr_number }}</strong> will be automatically included in the Work Order description.
+          </div>
+
+          <div class="form-group">
+            <label>WO Type</label>
+            {{ form.wo_type }}
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            {{ form.priority }}
+          </div>
+          <div class="form-group">
+            <label>Assigned Technician *</label>
+            {{ form.assigned_to }}
+            {% if form.assigned_to.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px">{{ form.assigned_to.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label>Due Date *</label>
+            {{ form.due_date }}
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Estimated Hours</label>
+              {{ form.estimated_hours }}
+            </div>
+            <div class="form-group">
+              <label>Labor Cost (EGP)</label>
+              {{ form.labor_cost }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Section Head Review Notes</label>
+            {{ form.review_notes }}
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button type="submit" class="btn btn-primary" style="background:#e94560;border-color:#e94560;flex:1;justify-content:center;font-size:14px;padding:11px">
+              ⚡ Create Work Order
+            </button>
+            <a href="{% url 'wr_detail' wr.pk %}" class="btn">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

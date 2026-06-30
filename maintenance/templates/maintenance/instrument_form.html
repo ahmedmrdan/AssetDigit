@@ -1,0 +1,33 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }}{% endblock %}{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>{{ title }}</h2><a href="{% url 'instrument_list' %}" class="btn">← Back</a></div>
+<div class="card" style="max-width:800px"><div class="card-body"><form method="post">{% csrf_token %}
+  <div class="form-grid">
+    <div class="form-group"><label>Instrument ID *</label>{{ form.instrument_id }}</div>
+    <div class="form-group"><label>Name *</label>{{ form.name }}</div>
+    <div class="form-group"><label>Type *</label>{{ form.instrument_type }}</div>
+    <div class="form-group"><label>Manufacturer</label>{{ form.manufacturer }}</div>
+    <div class="form-group"><label>Model Number</label>{{ form.model_number }}</div>
+    <div class="form-group"><label>Serial Number</label>{{ form.serial_number }}</div>
+    <div class="form-group"><label>Range Min</label>{{ form.range_min }}</div>
+    <div class="form-group"><label>Range Max</label>{{ form.range_max }}</div>
+    <div class="form-group"><label>Unit</label>{{ form.unit }}</div>
+    <div class="form-group"><label>Accuracy / Tolerance</label>{{ form.accuracy }}</div>
+    <div class="form-group"><label>Location</label>{{ form.location }}</div>
+    <div class="form-group"><label>Linked Asset</label>{{ form.asset }}</div>
+    <div class="form-group"><label>Responsible Person</label>{{ form.responsible_person }}</div>
+    <div class="form-group"><label>Calibration Frequency</label>{{ form.calibration_frequency }}</div>
+    <div class="form-group"><label>Last Calibration</label>{{ form.last_calibration }}</div>
+    <div class="form-group"><label>Next Calibration Due</label>{{ form.next_calibration }}</div>
+    <div class="form-group"><label>Calibration Lab</label>{{ form.calibration_lab }}</div>
+    <div class="form-group"><label>Status</label>{{ form.status }}</div>
+    <div class="form-group col-span-2"><label>ISO Reference</label>{{ form.iso_reference }}</div>
+    <div class="form-group col-span-2"><label>Notes</label>{{ form.notes }}</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">Save Instrument</button>
+    <a href="{% url 'instrument_list' %}" class="btn">Cancel</a>
+  </div>
+</form></div></div>
+{% endblock %}

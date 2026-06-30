@@ -1,0 +1,39 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>{{ title }}</h2><a href="{% url 'bda_list' %}" class="btn">← Back</a></div>
+<div class="card"><div class="card-body"><form method="post">{% csrf_token %}
+  <div class="form-grid">
+    <div class="form-group col-span-2"><label>Title *</label>{{ form.title }}</div>
+    <div class="form-group"><label>Asset *</label>{{ form.asset }}</div>
+    <div class="form-group"><label>Related Work Order</label>{{ form.work_order }}</div>
+    <div class="form-group"><label>Failure Date *</label>{{ form.failure_date }}</div>
+    <div class="form-group"><label>Restored Date</label>{{ form.restored_date }}</div>
+    <div class="form-group"><label>Total Downtime (hrs)</label>{{ form.total_downtime }}</div>
+    <div class="form-group"><label>Production Loss (EGP)</label>{{ form.production_loss }}</div>
+    <div class="form-group"><label>Repair Cost (EGP)</label>{{ form.repair_cost }}</div>
+    <div class="form-group"><label>Cause Category *</label>{{ form.cause_category }}</div>
+    <div class="form-group"><label>Analysis Method</label>{{ form.analysis_method }}</div>
+    <div class="form-group"><label>Recurrence Risk</label>{{ form.recurrence_risk }}</div>
+  </div>
+  <h4 style="margin:16px 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;color:#64748b;border-bottom:1px solid #e2e8f0;padding-bottom:6px">🔍 5-Why Analysis</h4>
+  <div class="form-grid">
+    <div class="form-group col-span-2"><label>Why 1 — What failed?</label>{{ form.why_1 }}</div>
+    <div class="form-group col-span-2"><label>Why 2 — Why did it fail?</label>{{ form.why_2 }}</div>
+    <div class="form-group col-span-2"><label>Why 3 — Why did that happen?</label>{{ form.why_3 }}</div>
+    <div class="form-group col-span-2"><label>Why 4 — Why was that the case?</label>{{ form.why_4 }}</div>
+    <div class="form-group col-span-2"><label>Why 5 — Root Cause</label>{{ form.why_5 }}</div>
+    <div class="form-group col-span-2"><label>Final Root Cause *</label>{{ form.root_cause }}</div>
+    <div class="form-group col-span-2"><label>Corrective Actions Taken *</label>{{ form.corrective_actions }}</div>
+    <div class="form-group col-span-2"><label>Preventive Actions (to avoid recurrence)</label>{{ form.preventive_actions }}</div>
+    <div class="form-group col-span-2"><label>Lessons Learned</label>{{ form.lessons_learned }}</div>
+    <div class="form-group"><label>Analysed By</label>{{ form.analysed_by }}</div>
+    <div class="form-group"><label>Approved By</label>{{ form.approved_by }}</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">Save Analysis</button>
+    <a href="{% url 'bda_list' %}" class="btn">Cancel</a>
+  </div>
+</form></div></div>
+{% endblock %}

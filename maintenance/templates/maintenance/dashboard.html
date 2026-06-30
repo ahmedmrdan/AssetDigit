@@ -1,0 +1,175 @@
+{% extends 'maintenance/base.html' %}
+{% load i18n %}
+{% get_current_language as CURRENT_LANG %}
+{% block title %}Dashboard — MaintenePro{% endblock %}
+{% block page_title %}{% if CURRENT_LANG == 'ar' %}لوحة التحكم{% else %}Dashboard{% endif %}{% endblock %}
+
+{% block content %}
+
+{% if company and company.welcome_message %}
+<div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#fff;border-radius:10px;padding:16px 22px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <span style="font-size:28px">{{ company.logo_text|default:'🏭' }}</span>
+  <div style="flex:1">
+    <div style="font-size:16px;font-weight:700">
+      {% if CURRENT_LANG == 'ar' and company.factory_name_ar %}{{ company.factory_name_ar }}{% else %}{{ company.factory_name }}{% endif %}
+    </div>
+    <div style="font-size:13px;color:#94a3b8;margin-top:3px">
+      {% if CURRENT_LANG == 'ar' and company.welcome_message_ar %}{{ company.welcome_message_ar }}
+      {% else %}{{ company.welcome_message }}{% endif %}
+    </div>
+    {% if company.location %}
+    <div style="font-size:12px;color:#64748b;margin-top:2px">
+      📍 {% if CURRENT_LANG == 'ar' and company.location_ar %}{{ company.location_ar }}{% else %}{{ company.location }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <div style="font-size:12px;color:#475569;text-align:right">
+    {% if company.phone %}<div>📞 {{ company.phone }}</div>{% endif %}
+    {% if company.email %}<div>✉️ {{ company.email }}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="label">Total Assets</div>
+    <div class="value">{{ total_assets }}</div>
+    <div class="sub">Registered equipment</div>
+  </div>
+  <div class="stat-card warning">
+    <div class="label">⚠️ Work Requests</div>
+    <div class="value">{{ new_wr }}</div>
+    <div class="sub">Pending review</div>
+  </div>
+  <div class="stat-card info">
+    <div class="label">Open Work Orders</div>
+    <div class="value">{{ open_wo }}</div>
+    <div class="sub">Pending & in progress</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="label">Overdue WOs</div>
+    <div class="value">{{ overdue_wo }}</div>
+    <div class="sub">Past due date</div>
+  </div>
+  <div class="stat-card success">
+    <div class="label">Completed This Month</div>
+    <div class="value">{{ completed_this_month }}</div>
+    <div class="sub">{{ today|date:"F Y" }}</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="label">Overdue PM Tasks</div>
+    <div class="value">{{ overdue_pm }}</div>
+    <div class="sub">Scheduled maintenance</div>
+  </div>
+</div>
+
+<!-- Work Requests pending conversion -->
+{% if recent_wrs %}
+<div class="card" style="border-left:4px solid #e94560">
+  <div class="card-header">
+    <h3 style="color:#e94560">⚡ Work Requests — Awaiting Action</h3>
+    <a href="{% url 'wr_list' %}" class="btn btn-sm">View All</a>
+  </div>
+  <table>
+    <thead><tr><th>WR#</th><th>Title</th><th>Machine</th><th>Alarm</th><th>Priority</th><th>Reported By</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for wr in recent_wrs %}
+      <tr>
+        <td><a href="{% url 'wr_detail' wr.pk %}" style="color:#e94560;font-weight:700;text-decoration:none">{{ wr.wr_number }}</a></td>
+        <td style="font-weight:500">{{ wr.title|truncatechars:30 }}</td>
+        <td style="font-size:12px">{{ wr.asset.name|default:"—"|truncatechars:20 }}</td>
+        <td><span class="badge badge-gray" style="font-size:10px">{{ wr.alarm_type }}</span></td>
+        <td>
+          {% if wr.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>
+          {% elif wr.priority == 'High'   %}<span class="badge badge-danger" style="background:#fff0e6;color:#c05000">High</span>
+          {% elif wr.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>
+          {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+        </td>
+        <td style="font-size:12px">{{ wr.reported_by }}</td>
+        <td style="font-size:12px">{{ wr.breakdown_time|date:"d/m H:i" }}</td>
+        <td>
+          {% if wr.status == 'New'           %}<span class="badge badge-info">New</span>
+          {% elif wr.status == 'Under Review' %}<span class="badge badge-warning">Review</span>
+          {% elif wr.status == 'Converted'    %}<span class="badge badge-purple">Converted</span>
+          {% else %}<span class="badge badge-gray">{{ wr.status }}</span>{% endif %}
+        </td>
+        <td>
+          {% if wr.status != 'Converted' %}
+          <a href="{% url 'wr_convert' wr.pk %}" class="btn btn-sm btn-primary" style="background:#e94560;border-color:#e94560">→ WO</a>
+          {% else %}
+          <a href="{% url 'wo_detail' wr.converted_to_wo.pk %}" class="btn btn-sm btn-success">📋 WO</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h3>Recent Work Orders</h3>
+      <a href="{% url 'wo_list' %}" class="btn btn-sm">View All</a>
+    </div>
+    <table>
+      <thead><tr><th>WO#</th><th>Title</th><th>Priority</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for wo in recent_wos %}
+        <tr>
+          <td><a href="{% url 'wo_detail' wo.pk %}" style="color:#2563eb;text-decoration:none;font-weight:600">{{ wo.wo_number }}</a></td>
+          <td>{{ wo.title|truncatechars:35 }}</td>
+          <td>
+            {% if wo.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>
+            {% elif wo.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>
+            {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+          </td>
+          <td>
+            {% if wo.status == 'Open' %}<span class="badge badge-info">Open</span>
+            {% elif wo.status == 'In Progress' %}<span class="badge badge-warning">In Progress</span>
+            {% elif wo.status == 'Completed' %}<span class="badge badge-success">Completed</span>
+            {% else %}<span class="badge badge-gray">{{ wo.status }}</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-muted" style="text-align:center;padding:24px">No work orders yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Upcoming PM Tasks</h3>
+      <a href="{% url 'pm_list' %}" class="btn btn-sm">View All</a>
+    </div>
+    <table>
+      <thead><tr><th>Task</th><th>Asset</th><th>Due Date</th><th>Freq.</th></tr></thead>
+      <tbody>
+        {% for pm in upcoming_pm %}
+        <tr>
+          <td style="font-weight:500">{{ pm.task_name|truncatechars:28 }}</td>
+          <td class="text-muted">{{ pm.asset.asset_id }}</td>
+          <td class="{% if pm.is_overdue %}overdue{% endif %}">{{ pm.next_due|date:"d/m/Y" }}</td>
+          <td><span class="badge badge-purple">{{ pm.frequency }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-muted" style="text-align:center;padding:24px">No PM tasks scheduled</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>Quick Actions</h3></div>
+  <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap">
+    <a href="{% url 'wr_create' %}" class="btn" style="background:#fff5f7;border-color:#fecdd3;color:#e94560;font-weight:600">⚠️ New Work Request</a>
+    <a href="{% url 'wo_create' %}" class="btn btn-primary">+ New Work Order</a>
+    <a href="{% url 'asset_create' %}" class="btn">+ Add Asset</a>
+    <a href="{% url 'pm_create' %}" class="btn">+ Add PM Task</a>
+    <a href="{% url 'reports' %}" class="btn">📊 Reports</a>
+    <a href="/admin/" class="btn">⚙️ Admin Panel</a>
+  </div>
+</div>
+{% endblock %}

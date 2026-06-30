@@ -1,0 +1,70 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }} — MaintenePro{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>{{ title }}</h2>
+  <a href="{% url 'asset_list' %}" class="btn">← Back to Assets</a>
+</div>
+
+<div class="card" style="max-width:720px">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Asset Name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label>Asset ID *</label>
+          {{ form.asset_id }}
+          {% if form.asset_id.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px">{{ form.asset_id.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          {{ form.category }}
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          {{ form.location }}
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          {{ form.status }}
+        </div>
+        <div class="form-group">
+          <label>Last PM Date</label>
+          {{ form.last_pm_date }}
+        </div>
+        <div class="form-group">
+          <label>Manufacturer</label>
+          {{ form.manufacturer }}
+        </div>
+        <div class="form-group">
+          <label>Model Number</label>
+          {{ form.model_number }}
+        </div>
+        <div class="form-group">
+          <label>Serial Number</label>
+          {{ form.serial_number }}
+        </div>
+        <div class="form-group">
+          <label>Purchase Date</label>
+          {{ form.purchase_date }}
+        </div>
+        <div class="form-group col-span-2">
+          <label>Notes</label>
+          {{ form.notes }}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button type="submit" class="btn btn-primary">Save Asset</button>
+        <a href="{% url 'asset_list' %}" class="btn">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

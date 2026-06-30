@@ -1,0 +1,151 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ wo.wo_number }} — MaintenePro{% endblock %}
+{% block page_title %}Work Order Detail{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>{{ wo.wo_number }} — {{ wo.title }}</h2>
+  <div style="display:flex;gap:8px">
+    {% if user.is_staff or user.profile.can_access_safety %}
+    <a href="{% url 'safety_permit_create_for_wo' wo.pk %}" class="btn btn-sm" style="background:#fef3c7;border-color:#fde68a;color:#92400e">🦺 Create Safety Permit</a>
+    {% endif %}
+    <a href="{% url 'wo_edit' wo.pk %}" class="btn btn-sm btn-primary">Edit</a>
+    <a href="{% url 'wo_delete' wo.pk %}" class="btn btn-sm" style="color:#dc2626">Delete</a>
+    <a href="{% url 'wo_list' %}" class="btn btn-sm">← Back</a>
+  </div>
+</div>
+
+{% if wo.safety_permits.all %}
+<div class="card" style="border-left:4px solid #f59e0b">
+  <div class="card-header"><h3>🦺 Safety Permits for this Work Order</h3></div>
+  <table>
+    <thead><tr><th>Permit#</th><th>Type</th><th>Risk</th><th>Status</th><th>Requested By</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for p in wo.safety_permits.all %}
+      <tr>
+        <td><a href="{% url 'safety_permit_detail' p.pk %}" style="color:#92400e;font-weight:700">{{ p.permit_number }}</a></td>
+        <td><span class="badge badge-gray" style="font-size:10px">{{ p.get_permit_type_display }}</span></td>
+        <td>{% if p.risk_level == 'Critical' %}<span class="badge badge-danger">Critical</span>{% elif p.risk_level == 'High' %}<span class="badge badge-danger" style="background:#fff0e6;color:#c05000">High</span>{% elif p.risk_level == 'Medium' %}<span class="badge badge-warning">Medium</span>{% else %}<span class="badge badge-gray">Low</span>{% endif %}</td>
+        <td>{% if p.status == 'Approved' %}<span class="badge badge-success">Approved</span>{% elif p.status == 'Active' %}<span class="badge badge-info">Active</span>{% elif p.status == 'Closed' %}<span class="badge badge-gray">Closed</span>{% elif p.status == 'Rejected' %}<span class="badge badge-danger">Rejected</span>{% else %}<span class="badge badge-warning">Pending</span>{% endif %}</td>
+        <td style="font-size:12px">{{ p.requested_by }}</td>
+        <td><a href="{% url 'safety_permit_detail' p.pk %}" class="btn btn-sm">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h3>Work Order Information</h3>
+      {% if wo.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>
+      {% elif wo.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>
+      {% else %}<span class="badge badge-gray">Low Priority</span>{% endif %}
+    </div>
+    <div class="card-body">
+      <div class="detail-row"><span class="detail-label">WO Number</span><span class="detail-value" style="color:#2563eb;font-weight:700">{{ wo.wo_number }}</span></div>
+      <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">{{ wo.wo_type }}</span></div>
+      <div class="detail-row"><span class="detail-label">Asset</span><span class="detail-value">{% if wo.asset %}<a href="{% url 'asset_detail' wo.asset.pk %}" style="color:#2563eb">{{ wo.asset.name }}</a>{% else %}—{% endif %}</span></div>
+      <div class="detail-row"><span class="detail-label">Assigned To</span><span class="detail-value">{{ wo.assigned_to|default:"Unassigned" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Due Date</span><span class="detail-value {% if wo.is_overdue %}overdue{% endif %}">{{ wo.due_date|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Completed Date</span><span class="detail-value">{{ wo.completed_date|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">⏱️ Actual Cycle Time</span><span class="detail-value" style="font-weight:700;{% if wo.cycle_time_display %}color:#16a34a{% endif %}">{{ wo.cycle_time_display|default:"In progress..." }}</span></div>
+      <div class="detail-row"><span class="detail-label">Est. Hours</span><span class="detail-value">{{ wo.estimated_hours|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Actual Hours</span><span class="detail-value">{{ wo.actual_hours|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Parts Cost</span><span class="detail-value">{{ wo.parts_cost }} EGP</span></div>
+      <div class="detail-row"><span class="detail-label">Labor Cost</span><span class="detail-value">{{ wo.labor_cost }} EGP</span></div>
+      <div class="detail-row"><span class="detail-label">Created By</span><span class="detail-value">{{ wo.created_by|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Created At</span><span class="detail-value">{{ wo.created_at|date:"d/m/Y H:i" }}</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-header"><h3>Update Status</h3></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:#64748b;margin-bottom:12px">Current: 
+          {% if wo.status == 'Open' %}<span class="badge badge-info">Open</span>
+          {% elif wo.status == 'In Progress' %}<span class="badge badge-warning">In Progress</span>
+          {% elif wo.status == 'Completed' %}<span class="badge badge-success">Completed</span>
+          {% elif wo.status == 'On Hold' %}<span class="badge badge-purple">On Hold</span>
+          {% else %}<span class="badge badge-gray">{{ wo.status }}</span>{% endif %}
+        </p>
+        <form method="post" action="{% url 'wo_update_status' wo.pk %}" style="display:flex;gap:8px;flex-wrap:wrap">
+          {% csrf_token %}
+          {% for value, label in wo.STATUS_CHOICES %}
+          {% if value != wo.status %}
+          <button type="submit" name="status" value="{{ value }}" class="btn btn-sm
+            {% if value == 'Completed' %}btn-success
+            {% elif value == 'In Progress' %}btn-primary
+            {% endif %}">
+            → {{ label }}
+          </button>
+          {% endif %}
+          {% endfor %}
+        </form>
+      </div>
+    </div>
+
+    {% if wo.description %}
+    <div class="card">
+      <div class="card-header"><h3>Description</h3></div>
+      <div class="card-body" style="font-size:13px;line-height:1.6;color:#374151">{{ wo.description }}</div>
+    </div>
+    {% endif %}
+
+    {% if wo.notes %}
+    <div class="card">
+      <div class="card-header"><h3>Notes</h3></div>
+      <div class="card-body" style="font-size:13px;line-height:1.6;color:#374151">{{ wo.notes }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Spare Parts Used</h3>
+  </div>
+  <table>
+    <thead><tr><th>Part Name</th><th>Part Number</th><th>Quantity</th><th>Unit Cost (EGP)</th><th>Total (EGP)</th></tr></thead>
+    <tbody>
+      {% for part in parts %}
+      <tr>
+        <td style="font-weight:500">{{ part.part_name }}</td>
+        <td class="text-muted">{{ part.part_number|default:"—" }}</td>
+        <td>{{ part.quantity }}</td>
+        <td>{{ part.unit_cost }}</td>
+        <td style="font-weight:600">{{ part.total_cost }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">No parts recorded</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="card-body" style="border-top:1px solid #e2e8f0">
+    <strong style="font-size:13px">Add Spare Part:</strong>
+    <form method="post" style="display:flex;gap:10px;align-items:flex-end;margin-top:10px;flex-wrap:wrap">
+      {% csrf_token %}
+      <div class="form-group mb-0">
+        <label>Part Name</label>
+        {{ part_form.part_name }}
+      </div>
+      <div class="form-group mb-0">
+        <label>Part Number</label>
+        {{ part_form.part_number }}
+      </div>
+      <div class="form-group mb-0" style="width:80px">
+        <label>Qty</label>
+        {{ part_form.quantity }}
+      </div>
+      <div class="form-group mb-0" style="width:120px">
+        <label>Unit Cost</label>
+        {{ part_form.unit_cost }}
+      </div>
+      <button type="submit" name="add_part" class="btn btn-primary btn-sm" style="margin-bottom:16px">+ Add Part</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

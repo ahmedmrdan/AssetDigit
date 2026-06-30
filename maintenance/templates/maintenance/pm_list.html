@@ -1,0 +1,57 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}PM Schedule — MaintenePro{% endblock %}
+{% block page_title %}PM Schedule{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>Preventive Maintenance ({{ pms.count }})</h2>
+  <a href="{% url 'pm_create' %}" class="btn btn-primary">+ Add PM Task</a>
+</div>
+
+<form method="get" class="filters">
+  <select name="status">
+    <option value="">All Tasks</option>
+    <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Overdue Only</option>
+    <option value="upcoming" {% if selected_status == 'upcoming' %}selected{% endif %}>Due in 30 Days</option>
+  </select>
+  <button type="submit" class="btn">Filter</button>
+  <a href="{% url 'pm_list' %}" class="btn btn-outline">Clear</a>
+</form>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Task Name</th><th>Asset</th><th>Frequency</th><th>Next Due</th><th>Assigned To</th><th>Est. Hours</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for pm in pms %}
+      <tr>
+        <td style="font-weight:500">{{ pm.task_name }}</td>
+        <td>{% if pm.asset %}<a href="{% url 'asset_detail' pm.asset.pk %}" style="color:#2563eb;text-decoration:none">{{ pm.asset.name }}</a>{% else %}—{% endif %}</td>
+        <td><span class="badge badge-purple">{{ pm.frequency }}</span></td>
+        <td class="{% if pm.is_overdue %}overdue{% endif %}">
+          {{ pm.next_due|date:"d/m/Y" }}
+          {% if pm.is_overdue %} ⚠️{% endif %}
+        </td>
+        <td class="text-muted">{{ pm.assigned_to|default:"—" }}</td>
+        <td class="text-muted">{{ pm.estimated_hours }} hrs</td>
+        <td>
+          {% if pm.is_overdue %}<span class="badge badge-danger">Overdue</span>
+          {% else %}<span class="badge badge-info">Pending</span>{% endif %}
+        </td>
+        <td>
+          <form method="post" action="{% url 'pm_complete' pm.pk %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-success">✓ Complete</button>
+          </form>
+          <a href="{% url 'pm_edit' pm.pk %}" class="btn btn-sm">Edit</a>
+          <a href="{% url 'pm_delete' pm.pk %}" class="btn btn-sm" style="color:#dc2626">Del</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;padding:32px;color:#64748b">No PM tasks. <a href="{% url 'pm_create' %}">Add your first task</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

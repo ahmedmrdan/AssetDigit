@@ -1,0 +1,27 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>{{ title }}</h2><a href="{% url 'proactive_list' %}" class="btn">← Back</a></div>
+<div class="card" style="max-width:760px"><div class="card-body"><form method="post">{% csrf_token %}
+  <div class="form-grid">
+    <div class="form-group col-span-2"><label>Title *</label>{{ form.title }}</div>
+    <div class="form-group"><label>Asset *</label>{{ form.asset }}</div>
+    <div class="form-group"><label>Action Type</label>{{ form.action_type }}</div>
+    <div class="form-group"><label>Priority</label>{{ form.priority }}</div>
+    <div class="form-group"><label>Status</label>{{ form.status }}</div>
+    <div class="form-group"><label>Assigned To</label>{{ form.assigned_to }}</div>
+    <div class="form-group"><label>Planned Date *</label>{{ form.planned_date }}</div>
+    <div class="form-group"><label>Estimated Hours</label>{{ form.estimated_hours }}</div>
+    <div class="form-group"><label>Actual Hours</label>{{ form.actual_hours }}</div>
+    <div class="form-group"><label>Completed Date</label>{{ form.completed_date }}</div>
+    <div class="form-group col-span-2"><label>Trigger Reason (What was observed?) *</label>{{ form.trigger_reason }}</div>
+    <div class="form-group col-span-2"><label>Action Plan</label>{{ form.action_plan }}</div>
+    <div class="form-group col-span-2"><label>Result</label>{{ form.result }}</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">Save Action</button>
+    <a href="{% url 'proactive_list' %}" class="btn">Cancel</a>
+  </div>
+</form></div></div>
+{% endblock %}

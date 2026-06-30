@@ -1,0 +1,30 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }}{% endblock %}{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>{{ title }}</h2><a href="{% url 'env_list' %}" class="btn">← Back</a></div>
+<div class="card" style="max-width:780px"><div class="card-body"><form method="post">{% csrf_token %}
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#15803d">
+    💡 Significance Score = Severity × Probability × Detection. Score ≥ 27 is automatically marked as <strong>Significant</strong>.
+  </div>
+  <div class="form-grid">
+    <div class="form-group col-span-2"><label>Activity / Process *</label>{{ form.activity }}</div>
+    <div class="form-group"><label>Environmental Aspect *</label>{{ form.aspect }}</div>
+    <div class="form-group"><label>Environmental Impact *</label>{{ form.impact }}</div>
+    <div class="form-group"><label>Condition</label>{{ form.condition }}</div>
+    <div class="form-group"><label>Department</label>{{ form.department }}</div>
+    <div class="form-group"><label>Linked Asset</label>{{ form.asset }}</div>
+    <div class="form-group"><label>Responsible Person</label>{{ form.responsible }}</div>
+    <div class="form-group"><label>Severity (1-5) *</label>{{ form.severity }}</div>
+    <div class="form-group"><label>Probability (1-5) *</label>{{ form.probability }}</div>
+    <div class="form-group"><label>Detection Difficulty (1-5) *</label>{{ form.detection }}</div>
+    <div class="form-group"><label>Next Review Date</label>{{ form.review_date }}</div>
+    <div class="form-group col-span-2"><label>Legal Requirements</label>{{ form.legal_requirement }}</div>
+    <div class="form-group col-span-2"><label>Control Measures</label>{{ form.control_measure }}</div>
+    <div class="form-group col-span-2"><label>Environmental Objective / Target</label>{{ form.objective }}</div>
+    <div class="form-group col-span-2"><label>Notes</label>{{ form.notes }}</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">Save Aspect</button>
+    <a href="{% url 'env_list' %}" class="btn">Cancel</a>
+  </div>
+</form></div></div>{% endblock %}

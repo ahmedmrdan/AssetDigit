@@ -1,0 +1,262 @@
+from django.conf import settings
+from django.db import migrations, models
+import django.db.models.deletion
+import django.utils.timezone
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('maintenance', '0003_new_modules'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+
+        # Instrument
+        migrations.CreateModel(
+            name='Instrument',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True)),
+                ('instrument_id', models.CharField(max_length=50, unique=True)),
+                ('name', models.CharField(max_length=200)),
+                ('instrument_type', models.CharField(max_length=50, choices=[
+                    ('Pressure Gauge','Pressure Gauge'),('Temperature','Temperature Meter/Sensor'),
+                    ('Multimeter','Electrical Multimeter'),('Clamp Meter','Clamp Meter'),
+                    ('Torque Wrench','Torque Wrench'),('Vernier Caliper','Vernier Caliper'),
+                    ('Micrometer','Micrometer'),('Flow Meter','Flow Meter'),
+                    ('Vibration Meter','Vibration Meter'),('Sound Level Meter','Sound Level Meter'),
+                    ('Scale/Balance','Scale / Balance'),('Thermometer','Thermometer'),
+                    ('Hygrometer','Hygrometer'),('Tachometer','Tachometer'),
+                    ('Power Analyzer','Power Analyzer'),('Other','Other'),
+                ])),
+                ('manufacturer', models.CharField(max_length=100, blank=True)),
+                ('model_number', models.CharField(max_length=100, blank=True)),
+                ('serial_number', models.CharField(max_length=100, blank=True)),
+                ('range_min', models.CharField(max_length=50, blank=True)),
+                ('range_max', models.CharField(max_length=50, blank=True)),
+                ('unit', models.CharField(max_length=30, blank=True)),
+                ('accuracy', models.CharField(max_length=50, blank=True)),
+                ('location', models.CharField(max_length=200, blank=True)),
+                ('responsible_person', models.CharField(max_length=100, blank=True)),
+                ('calibration_frequency', models.CharField(max_length=20, default='Annual',
+                    choices=[('Monthly','Monthly'),('Quarterly','Quarterly (3 months)'),
+                             ('Semi-Annual','Semi-Annual (6 months)'),('Annual','Annual (12 months)'),
+                             ('2 Years','Every 2 Years')])),
+                ('last_calibration', models.DateField(null=True, blank=True)),
+                ('next_calibration', models.DateField(null=True, blank=True)),
+                ('calibration_lab', models.CharField(max_length=200, blank=True)),
+                ('status', models.CharField(max_length=20, default='Active',
+                    choices=[('Active','Active — In Service'),('Due','Calibration Due'),
+                             ('Overdue','Overdue'),('In Cal','Sent for Calibration'),
+                             ('Out of Service','Out of Service'),('Scrapped','Scrapped')])),
+                ('iso_reference', models.CharField(max_length=100, blank=True, default='ISO 9001:2015 Cl.7.1.5')),
+                ('notes', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('asset', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    related_name='instruments', to='maintenance.asset')),
+            ],
+            options={'ordering': ['next_calibration']},
+        ),
+
+        # CalibrationRecord
+        migrations.CreateModel(
+            name='CalibrationRecord',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True)),
+                ('calibration_date', models.DateField()),
+                ('next_due', models.DateField()),
+                ('performed_by', models.CharField(max_length=100)),
+                ('lab_name', models.CharField(max_length=200, blank=True)),
+                ('certificate_number', models.CharField(max_length=100, blank=True)),
+                ('result', models.CharField(max_length=20, choices=[
+                    ('Pass','Pass — Within Tolerance'),('Pass with Note','Pass with Note'),
+                    ('Fail','Fail — Out of Tolerance'),('Adjusted','Adjusted & Pass'),
+                    ('Scrapped','Scrapped')])),
+                ('reading_before', models.CharField(max_length=100, blank=True)),
+                ('reading_after', models.CharField(max_length=100, blank=True)),
+                ('reference_standard', models.CharField(max_length=200, blank=True)),
+                ('temperature_c', models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)),
+                ('humidity_pct', models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)),
+                ('notes', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('instrument', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                    related_name='calibration_records', to='maintenance.instrument')),
+                ('created_by', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['-calibration_date']},
+        ),
+
+        # NonConformance
+        migrations.CreateModel(
+            name='NonConformance',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True)),
+                ('ncr_number', models.CharField(max_length=20, unique=True, editable=False)),
+                ('title', models.CharField(max_length=200)),
+                ('source', models.CharField(max_length=30, choices=[
+                    ('Internal Audit','Internal Audit'),('External Audit','External Audit (Certification Body)'),
+                    ('Customer Complaint','Customer Complaint'),('Process Monitoring','Process Monitoring'),
+                    ('Supplier Issue','Supplier Issue'),('Incident','Incident / Near Miss'),
+                    ('Inspection','Inspection Finding'),('Other','Other')])),
+                ('grade', models.CharField(max_length=20, choices=[
+                    ('Major','Major Non-Conformance'),('Minor','Minor Non-Conformance'),
+                    ('Observation','Observation'),('Opportunity','Opportunity for Improvement')])),
+                ('iso_standard', models.CharField(max_length=20, choices=[
+                    ('ISO 9001','ISO 9001:2015'),('ISO 14001','ISO 14001:2015'),
+                    ('ISO 55001','ISO 55001:2014'),('ISO 45001','ISO 45001:2018'),
+                    ('Internal','Internal Standard'),('Other','Other')])),
+                ('iso_clause', models.CharField(max_length=50, blank=True)),
+                ('department', models.CharField(max_length=100, blank=True)),
+                ('description', models.TextField()),
+                ('evidence', models.TextField(blank=True)),
+                ('immediate_action', models.TextField(blank=True)),
+                ('root_cause', models.TextField(blank=True)),
+                ('corrective_action', models.TextField(blank=True)),
+                ('preventive_action', models.TextField(blank=True)),
+                ('status', models.CharField(max_length=20, default='Open', choices=[
+                    ('Open','Open'),('Under Analysis','Under Root Cause Analysis'),
+                    ('Action Planned','Corrective Action Planned'),
+                    ('In Progress','Corrective Action In Progress'),
+                    ('Completed','Action Completed'),('Verified','Verified Effective — Closed'),
+                    ('Rejected','Rejected / Invalid')])),
+                ('raised_by', models.CharField(max_length=100)),
+                ('assigned_to', models.CharField(max_length=100, blank=True)),
+                ('target_date', models.DateField(null=True, blank=True)),
+                ('completed_date', models.DateField(null=True, blank=True)),
+                ('verified_by', models.CharField(max_length=100, blank=True)),
+                ('verified_date', models.DateField(null=True, blank=True)),
+                ('verification_notes', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('linked_wo', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    related_name='ncrs', to='maintenance.workorder')),
+                ('created_by', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['-created_at'],
+                     'verbose_name': 'Non-Conformance',
+                     'verbose_name_plural': 'Non-Conformances'},
+        ),
+
+        # ISODocument
+        migrations.CreateModel(
+            name='ISODocument',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True)),
+                ('doc_number', models.CharField(max_length=50, unique=True)),
+                ('title', models.CharField(max_length=300)),
+                ('doc_type', models.CharField(max_length=30, choices=[
+                    ('Procedure','Procedure (PR)'),('Work Instruction','Work Instruction (WI)'),
+                    ('Form','Form / Template (FM)'),('Record','Record (RC)'),
+                    ('Policy','Policy'),('Manual','Manual'),
+                    ('External Document','External Document'),('Drawing','Drawing / Specification')])),
+                ('iso_standard', models.CharField(max_length=20, choices=[
+                    ('ISO 9001','ISO 9001:2015'),('ISO 14001','ISO 14001:2015'),
+                    ('ISO 55001','ISO 55001:2014'),('All','All Standards'),('Internal','Internal Only')])),
+                ('iso_clause', models.CharField(max_length=100, blank=True)),
+                ('department', models.CharField(max_length=100, blank=True)),
+                ('revision', models.CharField(max_length=10, default='00')),
+                ('status', models.CharField(max_length=20, default='Draft', choices=[
+                    ('Draft','Draft'),('Review','Under Review'),
+                    ('Approved','Approved — Controlled'),('Obsolete','Obsolete')])),
+                ('prepared_by', models.CharField(max_length=100, blank=True)),
+                ('reviewed_by', models.CharField(max_length=100, blank=True)),
+                ('approved_by', models.CharField(max_length=100, blank=True)),
+                ('issue_date', models.DateField(null=True, blank=True)),
+                ('review_date', models.DateField(null=True, blank=True)),
+                ('scope', models.TextField(blank=True)),
+                ('location', models.CharField(max_length=300, blank=True)),
+                ('change_summary', models.TextField(blank=True)),
+                ('notes', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('created_by', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['doc_number'], 'verbose_name': 'ISO Document'},
+        ),
+
+        # InternalAudit
+        migrations.CreateModel(
+            name='InternalAudit',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True)),
+                ('audit_number', models.CharField(max_length=20, unique=True, editable=False)),
+                ('title', models.CharField(max_length=200)),
+                ('iso_standard', models.CharField(max_length=20, choices=[
+                    ('ISO 9001','ISO 9001:2015'),('ISO 14001','ISO 14001:2015'),
+                    ('ISO 55001','ISO 55001:2014'),('Combined','Combined Audit')])),
+                ('audit_type', models.CharField(max_length=20, default='System', choices=[
+                    ('System','System Audit'),('Process','Process Audit'),
+                    ('Product','Product / Output Audit'),('Supplier','Supplier Audit')])),
+                ('department', models.CharField(max_length=100)),
+                ('clauses_audited', models.CharField(max_length=300, blank=True)),
+                ('lead_auditor', models.CharField(max_length=100)),
+                ('audit_team', models.TextField(blank=True)),
+                ('auditee', models.CharField(max_length=100, blank=True)),
+                ('planned_date', models.DateField()),
+                ('actual_date', models.DateField(null=True, blank=True)),
+                ('duration_hours', models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)),
+                ('status', models.CharField(max_length=20, default='Planned', choices=[
+                    ('Planned','Planned'),('In Progress','In Progress'),
+                    ('Completed','Completed'),('Cancelled','Cancelled')])),
+                ('scope', models.TextField(blank=True)),
+                ('checklist_notes', models.TextField(blank=True)),
+                ('summary', models.TextField(blank=True)),
+                ('major_nc_count', models.PositiveIntegerField(default=0)),
+                ('minor_nc_count', models.PositiveIntegerField(default=0)),
+                ('observation_count', models.PositiveIntegerField(default=0)),
+                ('ofi_count', models.PositiveIntegerField(default=0)),
+                ('overall_result', models.CharField(max_length=50, blank=True)),
+                ('next_audit_date', models.DateField(null=True, blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('created_by', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['-planned_date']},
+        ),
+
+        # EnvironmentalAspect
+        migrations.CreateModel(
+            name='EnvironmentalAspect',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True)),
+                ('aspect_number', models.CharField(max_length=20, unique=True, editable=False)),
+                ('activity', models.CharField(max_length=200)),
+                ('aspect', models.CharField(max_length=50, choices=[
+                    ('Air Emission','Air Emission'),('Water Discharge','Water Discharge'),
+                    ('Waste Generation','Waste Generation'),('Soil Contamination','Soil Contamination'),
+                    ('Energy Use','Energy Use'),('Water Use','Water Consumption'),
+                    ('Noise','Noise / Vibration'),('Chemical Use','Chemical Use / Storage'),
+                    ('Spill Risk','Spill / Leak Risk'),('Other','Other')])),
+                ('impact', models.CharField(max_length=300)),
+                ('condition', models.CharField(max_length=20, default='Normal', choices=[
+                    ('Normal','Normal Operations'),('Abnormal','Abnormal Operations'),
+                    ('Emergency','Emergency Conditions')])),
+                ('department', models.CharField(max_length=100, blank=True)),
+                ('severity', models.IntegerField(default=3)),
+                ('probability', models.IntegerField(default=3)),
+                ('detection', models.IntegerField(default=3)),
+                ('significance_score', models.IntegerField(default=0, editable=False)),
+                ('significance', models.CharField(max_length=20, default='Non-Significant',
+                    choices=[('Significant','Significant'),('Non-Significant','Non-Significant')])),
+                ('legal_requirement', models.TextField(blank=True)),
+                ('control_measure', models.TextField(blank=True)),
+                ('objective', models.TextField(blank=True)),
+                ('responsible', models.CharField(max_length=100, blank=True)),
+                ('review_date', models.DateField(null=True, blank=True)),
+                ('notes', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('asset', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    related_name='env_aspects', to='maintenance.asset')),
+                ('created_by', models.ForeignKey(null=True, blank=True,
+                    on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['-significance_score']},
+        ),
+    ]

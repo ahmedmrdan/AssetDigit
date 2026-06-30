@@ -1,0 +1,56 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }} — MaintenePro{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>{{ title }}</h2>
+  <a href="{% url 'pm_list' %}" class="btn">← Back to PM Schedule</a>
+</div>
+
+<div class="card" style="max-width:680px">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group col-span-2">
+          <label>Task Name *</label>
+          {{ form.task_name }}
+        </div>
+        <div class="form-group">
+          <label>Asset *</label>
+          {{ form.asset }}
+        </div>
+        <div class="form-group">
+          <label>Frequency</label>
+          {{ form.frequency }}
+        </div>
+        <div class="form-group">
+          <label>Next Due Date</label>
+          {{ form.next_due }}
+        </div>
+        <div class="form-group">
+          <label>Assigned To</label>
+          {{ form.assigned_to }}
+        </div>
+        <div class="form-group">
+          <label>Estimated Hours</label>
+          {{ form.estimated_hours }}
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          {{ form.status }}
+        </div>
+        <div class="form-group col-span-2">
+          <label>Instructions</label>
+          {{ form.instructions }}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button type="submit" class="btn btn-primary">Save PM Task</button>
+        <a href="{% url 'pm_list' %}" class="btn">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

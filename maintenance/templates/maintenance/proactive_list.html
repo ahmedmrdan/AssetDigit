@@ -1,0 +1,35 @@
+{% extends 'maintenance/base.html' %}
+{% load i18n %}{% get_current_language as CURRENT_LANG %}
+{% block title %}Proactive Maintenance{% endblock %}
+{% block page_title %}Proactive Maintenance{% endblock %}
+{% block content %}
+<div class="page-actions">
+  <h2>🔧 {% if CURRENT_LANG == 'ar' %}الصيانة الاستباقية{% else %}Proactive Actions{% endif %} ({{ actions.count }})</h2>
+  <a href="{% url 'proactive_create' %}" class="btn btn-primary">+ New Action</a>
+</div>
+<form method="get" class="filters">
+  <select name="status"><option value="">All Status</option><option value="Planned">Planned</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option></select>
+  <select name="priority"><option value="">All Priorities</option><option value="Critical">Critical</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option></select>
+  <button type="submit" class="btn">Filter</button>
+  <a href="{% url 'proactive_list' %}" class="btn">Clear</a>
+</form>
+<div class="card"><table>
+  <thead><tr><th>Title</th><th>Asset</th><th>Type</th><th>Priority</th><th>Assigned To</th><th>Planned Date</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for a in actions %}
+  <tr>
+    <td style="font-weight:500;max-width:200px">{{ a.title|truncatechars:45 }}</td>
+    <td style="font-size:12px">{{ a.asset.name }}</td>
+    <td><span class="badge badge-gray">{{ a.action_type }}</span></td>
+    <td>{% if a.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>{% elif a.priority == 'High' %}<span class="badge badge-danger" style="background:#fff0e6;color:#c05000">High</span>{% elif a.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>{% else %}<span class="badge badge-gray">Low</span>{% endif %}</td>
+    <td style="font-size:12px">{{ a.assigned_to|default:"—" }}</td>
+    <td style="font-size:12px {% if a.is_overdue %}color:#dc2626;font-weight:600{% endif %}">{{ a.planned_date|date:"d/m/Y" }}</td>
+    <td>{% if a.status == 'Planned' %}<span class="badge badge-info">Planned</span>{% elif a.status == 'In Progress' %}<span class="badge badge-warning">In Progress</span>{% elif a.status == 'Completed' %}<span class="badge badge-success">Completed</span>{% else %}<span class="badge badge-gray">Cancelled</span>{% endif %}</td>
+    <td><a href="{% url 'proactive_edit' a.pk %}" class="btn btn-sm">Edit</a>
+        <a href="{% url 'proactive_delete' a.pk %}" class="btn btn-sm" style="color:#dc2626">Del</a></td>
+  </tr>
+  {% empty %}<tr><td colspan="8" style="text-align:center;padding:32px;color:#64748b">No proactive actions yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

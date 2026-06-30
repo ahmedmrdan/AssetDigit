@@ -1,0 +1,36 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ audit.audit_number }}{% endblock %}{% block page_title %}Audit Detail{% endblock %}
+{% block content %}
+<div class="page-actions">
+  <h2>{{ audit.audit_number }} — {{ audit.title }}</h2>
+  <div style="display:flex;gap:8px"><a href="{% url 'audit_edit' audit.pk %}" class="btn btn-primary btn-sm">Edit</a><a href="{% url 'audit_list' %}" class="btn btn-sm">← Back</a></div>
+</div>
+<div class="grid-2">
+  <div class="card"><div class="card-header"><h3>Audit Information</h3></div>
+    <div class="card-body">
+      <div class="detail-row"><span class="detail-label">Audit Number</span><span class="detail-value" style="color:#2563eb;font-weight:700">{{ audit.audit_number }}</span></div>
+      <div class="detail-row"><span class="detail-label">ISO Standard</span><span class="detail-value"><span class="badge badge-purple">{{ audit.iso_standard }}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">{{ audit.audit_type }}</span></div>
+      <div class="detail-row"><span class="detail-label">Department</span><span class="detail-value">{{ audit.department }}</span></div>
+      <div class="detail-row"><span class="detail-label">Clauses Audited</span><span class="detail-value" style="font-family:monospace">{{ audit.clauses_audited|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Lead Auditor</span><span class="detail-value">{{ audit.lead_auditor }}</span></div>
+      <div class="detail-row"><span class="detail-label">Auditee</span><span class="detail-value">{{ audit.auditee|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Planned Date</span><span class="detail-value">{{ audit.planned_date|date:"d/m/Y" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Actual Date</span><span class="detail-value">{{ audit.actual_date|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">{{ audit.duration_hours|default:"—" }} hrs</span></div>
+      <div class="detail-row"><span class="detail-label">Next Audit</span><span class="detail-value">{{ audit.next_audit_date|date:"d/m/Y"|default:"—" }}</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+      <div class="stat-card danger"><div class="label">Major NCs</div><div class="value">{{ audit.major_nc_count }}</div></div>
+      <div class="stat-card warning"><div class="label">Minor NCs</div><div class="value">{{ audit.minor_nc_count }}</div></div>
+      <div class="stat-card info"><div class="label">Observations</div><div class="value">{{ audit.observation_count }}</div></div>
+      <div class="stat-card success"><div class="label">OFIs</div><div class="value">{{ audit.ofi_count }}</div></div>
+    </div>
+    {% if audit.summary %}<div class="card"><div class="card-header"><h3>Summary</h3></div><div class="card-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap">{{ audit.summary }}</div></div>{% endif %}
+    <div style="margin-top:12px"><a href="{% url 'ncr_create' %}" class="btn btn-primary" style="width:100%;justify-content:center">+ Create NCR from this Audit</a></div>
+  </div>
+</div>
+{% if audit.checklist_notes %}<div class="card"><div class="card-header"><h3>📋 Audit Checklist & Notes</h3></div><div class="card-body" style="font-size:13px;line-height:1.8;white-space:pre-wrap">{{ audit.checklist_notes }}</div></div>{% endif %}
+{% endblock %}

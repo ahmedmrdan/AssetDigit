@@ -1,0 +1,98 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ asset.name }} — MaintenePro{% endblock %}
+{% block page_title %}Asset Detail{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>{{ asset.name }}</h2>
+  <div style="display:flex;gap:8px">
+    <a href="{% url 'wo_create' %}" class="btn btn-primary btn-sm">+ Work Order</a>
+    <a href="{% url 'asset_edit' asset.pk %}" class="btn btn-sm">Edit</a>
+    <a href="{% url 'asset_delete' asset.pk %}" class="btn btn-sm" style="color:#dc2626">Delete</a>
+    <a href="{% url 'asset_list' %}" class="btn btn-sm">← Back</a>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h3>Asset Information</h3>
+      {% if asset.status == 'Operational' %}<span class="badge badge-success">Operational</span>
+      {% elif asset.status == 'Under Maintenance' %}<span class="badge badge-warning">Maintenance</span>
+      {% else %}<span class="badge badge-danger">Offline</span>{% endif %}
+    </div>
+    <div class="card-body">
+      <div class="detail-row"><span class="detail-label">Asset ID</span><span class="detail-value">{{ asset.asset_id }}</span></div>
+      <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">{{ asset.category }}</span></div>
+      <div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">{{ asset.location }}</span></div>
+      <div class="detail-row"><span class="detail-label">Manufacturer</span><span class="detail-value">{{ asset.manufacturer|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Model Number</span><span class="detail-value">{{ asset.model_number|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Serial Number</span><span class="detail-value">{{ asset.serial_number|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Purchase Date</span><span class="detail-value">{{ asset.purchase_date|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Last PM Date</span><span class="detail-value">{{ asset.last_pm_date|date:"d/m/Y"|default:"—" }}</span></div>
+      {% if asset.notes %}
+      <div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:6px;font-size:13px;color:#475569">{{ asset.notes }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>PM Schedules</h3>
+      <a href="{% url 'pm_create' %}" class="btn btn-sm">+ Add PM</a>
+    </div>
+    <table>
+      <thead><tr><th>Task</th><th>Frequency</th><th>Next Due</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for pm in pm_tasks %}
+        <tr>
+          <td style="font-weight:500">{{ pm.task_name }}</td>
+          <td><span class="badge badge-purple">{{ pm.frequency }}</span></td>
+          <td class="{% if pm.is_overdue %}overdue{% endif %}">{{ pm.next_due|date:"d/m/Y" }}</td>
+          <td>
+            <form method="post" action="{% url 'pm_complete' pm.pk %}" style="display:inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-success">✓ Done</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px">No PM tasks for this asset</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Work Order History</h3>
+    <a href="{% url 'wo_create' %}" class="btn btn-sm btn-primary">+ New WO</a>
+  </div>
+  <table>
+    <thead><tr><th>WO#</th><th>Title</th><th>Type</th><th>Priority</th><th>Assigned To</th><th>Due Date</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for wo in wos %}
+      <tr>
+        <td><a href="{% url 'wo_detail' wo.pk %}" style="color:#2563eb;font-weight:600">{{ wo.wo_number }}</a></td>
+        <td>{{ wo.title }}</td>
+        <td class="text-muted">{{ wo.wo_type }}</td>
+        <td>
+          {% if wo.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>
+          {% elif wo.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>
+          {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+        </td>
+        <td class="text-muted">{{ wo.assigned_to|default:"—" }}</td>
+        <td class="{% if wo.is_overdue %}overdue{% endif %}">{{ wo.due_date|date:"d/m/Y"|default:"—" }}</td>
+        <td>
+          {% if wo.status == 'Open' %}<span class="badge badge-info">Open</span>
+          {% elif wo.status == 'In Progress' %}<span class="badge badge-warning">In Progress</span>
+          {% elif wo.status == 'Completed' %}<span class="badge badge-success">Completed</span>
+          {% else %}<span class="badge badge-gray">{{ wo.status }}</span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">No work orders for this asset</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

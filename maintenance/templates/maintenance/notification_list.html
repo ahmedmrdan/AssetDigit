@@ -1,0 +1,101 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Notifications — MaintenePro{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>Notifications ({{ notifs.count }})</h2>
+  <a href="{% url 'notification_mark_all_read' %}" class="btn">✓ Mark All Read</a>
+</div>
+
+{% if notifs %}
+<div class="card" style="padding:0">
+  <table>
+    <thead>
+      <tr><th>Type</th><th>Title</th><th>Message</th><th>Time</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for n in notifs %}
+      <tr style="{% if not n.is_read %}background:#fafbff;{% endif %}">
+        <td>
+          {% if n.notif_type == 'wr_new'       %}<span class="badge badge-danger">🚨 New WR</span>
+          {% elif n.notif_type == 'wr_converted'%}<span class="badge badge-success">✅ WR→WO</span>
+          {% elif n.notif_type == 'wr_rejected' %}<span class="badge badge-danger">❌ WR Rejected</span>
+          {% elif n.notif_type == 'wo_assigned' %}<span class="badge badge-info">📋 WO Assigned</span>
+          {% elif n.notif_type == 'wo_completed'%}<span class="badge badge-success">🏁 WO Done</span>
+          {% elif n.notif_type == 'wo_overdue'  %}<span class="badge badge-warning">⏰ WO Overdue</span>
+          {% elif n.notif_type == 'pm_due'      %}<span class="badge badge-warning">📅 PM Due</span>
+          {% elif n.notif_type == 'pm_overdue'  %}<span class="badge badge-danger">⚠️ PM Overdue</span>
+          {% else %}<span class="badge badge-gray">🔔 Info</span>{% endif %}
+        </td>
+        <td style="font-weight:{% if not n.is_read %}600{% else %}400{% endif %};font-size:13px">
+          {% if not n.is_read %}<span style="display:inline-block;width:7px;height:7px;background:#e94560;border-radius:50%;margin-right:6px;vertical-align:middle"></span>{% endif %}
+          {{ n.title }}
+        </td>
+        <td style="font-size:12px;color:#475569;max-width:320px;white-space:pre-wrap;line-height:1.5">{{ n.message|truncatechars:180 }}</td>
+        <td style="font-size:12px;color:#94a3b8;white-space:nowrap">{{ n.created_at|date:"d/m/Y H:i" }}</td>
+        <td>
+          {% if n.is_read %}<span class="badge badge-gray">Read</span>
+          {% else %}<span class="badge badge-info">Unread</span>{% endif %}
+        </td>
+        <td>
+          <div style="display:flex;gap:6px">
+            {% if n.link %}
+            <a href="{% url 'notification_mark_read' n.pk %}" class="btn btn-sm btn-primary">Open →</a>
+            {% endif %}
+            <a href="{% url 'notification_delete' n.pk %}" class="btn btn-sm" style="color:#dc2626">Del</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body" style="text-align:center;padding:48px;color:#94a3b8">
+    <div style="font-size:48px;margin-bottom:12px">🔔</div>
+    <div style="font-size:15px;font-weight:500;margin-bottom:6px">No notifications yet</div>
+    <div style="font-size:13px">You will receive notifications here based on your preferences set by the administrator.</div>
+  </div>
+</div>
+{% endif %}
+
+<!-- NOTIFICATION FLOW DIAGRAM -->
+<div class="card">
+  <div class="card-header"><h3>📡 Notification Flow</h3></div>
+  <div class="card-body">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;padding:10px 0">
+      <div style="background:#fff5f7;border:1px solid #fecdd3;border-radius:8px;padding:10px 14px;text-align:center">
+        <div style="font-size:18px">👷</div>
+        <div style="font-weight:600;margin-top:4px">Operator</div>
+        <div style="font-size:11px;color:#64748b">Submits Work Request</div>
+      </div>
+      <div style="font-size:20px;color:#94a3b8">→</div>
+      <div style="background:#dbeafe;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;text-align:center">
+        <div style="font-size:18px">🔔</div>
+        <div style="font-weight:600;margin-top:4px">Bell Rings</div>
+        <div style="font-size:11px;color:#64748b">Maintenance team notified</div>
+      </div>
+      <div style="font-size:20px;color:#94a3b8">→</div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;text-align:center">
+        <div style="font-size:18px">🔧</div>
+        <div style="font-weight:600;margin-top:4px">Maintenance</div>
+        <div style="font-size:11px;color:#64748b">Reviews & converts to WO</div>
+      </div>
+      <div style="font-size:20px;color:#94a3b8">→</div>
+      <div style="background:#dbeafe;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;text-align:center">
+        <div style="font-size:18px">🔔</div>
+        <div style="font-weight:600;margin-top:4px">Bell Rings</div>
+        <div style="font-size:11px;color:#64748b">Production notified WO created</div>
+      </div>
+      <div style="font-size:20px;color:#94a3b8">→</div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;text-align:center">
+        <div style="font-size:18px">✅</div>
+        <div style="font-weight:600;margin-top:4px">WO Completed</div>
+        <div style="font-size:11px;color:#64748b">Production notified machine ready</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

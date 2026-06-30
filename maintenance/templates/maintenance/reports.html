@@ -1,0 +1,260 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Reports — MaintenePro{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-actions"><h2>Reports & Analytics</h2></div>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="label">Total Work Orders</div><div class="value">{{ total_wo }}</div></div>
+  <div class="stat-card success"><div class="label">Completion Rate</div><div class="value">{{ comp_rate }}%</div></div>
+  <div class="stat-card danger"><div class="label">Overdue WOs</div><div class="value">{{ overdue_count }}</div></div>
+  <div class="stat-card"><div class="label">Total Assets</div><div class="value">{{ total_assets }}</div></div>
+  <div class="stat-card info"><div class="label">Active PM Tasks</div><div class="value">{{ active_pm }}</div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h3>Work Orders by Status</h3></div>
+    <div class="card-body">
+      {% for item in by_status %}
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+          <span>
+            {% if item.status == 'Open' %}<span class="badge badge-info">Open</span>
+            {% elif item.status == 'In Progress' %}<span class="badge badge-warning">In Progress</span>
+            {% elif item.status == 'Completed' %}<span class="badge badge-success">Completed</span>
+            {% elif item.status == 'On Hold' %}<span class="badge badge-purple">On Hold</span>
+            {% else %}<span class="badge badge-gray">{{ item.status }}</span>{% endif %}
+          </span>
+          <strong>{{ item.count }}</strong>
+        </div>
+        <div class="progress-bar">
+          {% if total_wo > 0 %}
+          <div class="progress-fill" style="width:{% widthratio item.count total_wo 100 %}%;
+            background:{% if item.status == 'Completed' %}#16a34a{% elif item.status == 'In Progress' %}#d97706{% elif item.status == 'Open' %}#2563eb{% else %}#94a3b8{% endif %}">
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Work Orders by Priority</h3></div>
+    <div class="card-body">
+      {% for item in by_priority %}
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+          <span>
+            {% if item.priority == 'Critical' %}<span class="badge badge-danger">Critical</span>
+            {% elif item.priority == 'Medium' %}<span class="badge badge-warning">Medium</span>
+            {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+          </span>
+          <strong>{{ item.count }}</strong>
+        </div>
+        <div class="progress-bar">
+          {% if total_wo > 0 %}
+          <div class="progress-fill" style="width:{% widthratio item.count total_wo 100 %}%;
+            background:{% if item.priority == 'Critical' %}#dc2626{% elif item.priority == 'Medium' %}#d97706{% else %}#64748b{% endif %}">
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Assets by Status</h3></div>
+    <div class="card-body">
+      {% for item in by_asset_status %}
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+          <span>
+            {% if item.status == 'Operational' %}<span class="badge badge-success">Operational</span>
+            {% elif item.status == 'Under Maintenance' %}<span class="badge badge-warning">Under Maintenance</span>
+            {% else %}<span class="badge badge-danger">Offline</span>{% endif %}
+          </span>
+          <strong>{{ item.count }}</strong>
+        </div>
+        <div class="progress-bar">
+          {% if total_assets > 0 %}
+          <div class="progress-fill" style="width:{% widthratio item.count total_assets 100 %}%;
+            background:{% if item.status == 'Operational' %}#16a34a{% elif item.status == 'Under Maintenance' %}#d97706{% else %}#dc2626{% endif %}">
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Monthly Work Orders (Last 6 Months)</h3></div>
+    <div class="card-body">
+      {% for m in monthly %}
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>{{ m.month }}</span><strong>{{ m.count }}</strong>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:{% if m.count > 0 %}{% widthratio m.count 20 100 %}{% else %}0{% endif %}%;background:#2563eb"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>Work Orders by Asset Category</h3></div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+      {% for item in by_category %}
+      {% if item.asset__category %}
+      <div style="background:#f8fafc;border-radius:8px;padding:14px;border:1px solid #e2e8f0">
+        <div style="font-size:12px;color:#64748b;margin-bottom:4px">{{ item.asset__category|default:"No Asset" }}</div>
+        <div style="font-size:22px;font-weight:700">{{ item.count }}</div>
+        <div style="font-size:11px;color:#94a3b8">work orders</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ⏱️ ACTUAL CYCLE TIME (Creation → Completion) -->
+<div class="card" style="border-left:4px solid #16a34a">
+  <div class="card-header"><h3>⏱️ Work Order Cycle Time (Created → Completed)</h3></div>
+  <div class="card-body">
+    {% if cycle_time_count > 0 %}
+    <div class="stats-grid" style="margin-bottom:0">
+      <div class="stat-card success">
+        <div class="label">Average Cycle Time</div>
+        <div class="value" style="font-size:22px">{{ avg_cycle_display }}</div>
+        <div class="sub">Based on {{ cycle_time_count }} completed WOs</div>
+      </div>
+      <div class="stat-card info">
+        <div class="label">Fastest Completion</div>
+        <div class="value" style="font-size:22px">{{ fastest_cycle_display }}</div>
+        <div class="sub">Best performance</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="label">Slowest Completion</div>
+        <div class="value" style="font-size:22px">{{ slowest_cycle_display }}</div>
+        <div class="sub">Needs investigation</div>
+      </div>
+    </div>
+    {% else %}
+    <p style="color:#64748b;font-size:13px;text-align:center;padding:20px">
+      No completed work orders with timestamp data yet. Cycle time will appear here once work orders are marked Completed.
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+{% if cycle_by_priority %}
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h3>⏱️ Average Cycle Time by Priority</h3></div>
+    <div class="card-body">
+      {% for c in cycle_by_priority %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9">
+        <span style="font-size:13px;font-weight:500">{{ c.priority }}</span>
+        <span style="font-size:13px;font-weight:700;color:#16a34a">{{ c.avg_display }}</span>
+        <span style="font-size:11px;color:#94a3b8">({{ c.count }} WOs)</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if slowest_wos %}
+  <div class="card">
+    <div class="card-header"><h3>🐢 Slowest 5 Work Orders</h3></div>
+    <table>
+      <thead><tr><th>WO#</th><th>Title</th><th>Cycle Time</th></tr></thead>
+      <tbody>
+        {% for wo in slowest_wos %}
+        <tr>
+          <td><a href="{% url 'wo_detail' wo.pk %}" style="color:#2563eb;font-weight:600">{{ wo.wo_number }}</a></td>
+          <td style="font-size:12px">{{ wo.title|truncatechars:30 }}</td>
+          <td style="font-weight:700;color:#dc2626">{{ wo.cycle_time_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- 🦺 SAFETY PERMIT RESPONSE TIME (Created → Approved/Rejected) -->
+<div class="card" style="border-left:4px solid #f59e0b;margin-top:24px">
+  <div class="card-header">
+    <h3>🦺 Safety Permit Response Time (Created → Decision)</h3>
+    {% if pending_permits_count > 0 %}<span class="badge badge-warning">{{ pending_permits_count }} pending</span>{% endif %}
+  </div>
+  <div class="card-body">
+    {% if permit_time_count > 0 %}
+    <div class="stats-grid" style="margin-bottom:0">
+      <div class="stat-card warning">
+        <div class="label">Average Response Time</div>
+        <div class="value" style="font-size:22px">{{ avg_permit_display }}</div>
+        <div class="sub">Based on {{ permit_time_count }} decided permits</div>
+      </div>
+      <div class="stat-card info">
+        <div class="label">Fastest Decision</div>
+        <div class="value" style="font-size:22px">{{ fastest_permit_display }}</div>
+        <div class="sub">Best response</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="label">Slowest Decision</div>
+        <div class="value" style="font-size:22px">{{ slowest_permit_display }}</div>
+        <div class="sub">Needs investigation</div>
+      </div>
+    </div>
+    {% else %}
+    <p style="color:#64748b;font-size:13px;text-align:center;padding:20px">
+      No safety permits approved or rejected yet. Response time will appear here once a safety officer makes a decision.
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+{% if permit_by_risk %}
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h3>🦺 Average Response Time by Risk Level</h3></div>
+    <div class="card-body">
+      {% for r in permit_by_risk %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9">
+        <span style="font-size:13px;font-weight:500">{{ r.risk }}</span>
+        <span style="font-size:13px;font-weight:700;color:#f59e0b">{{ r.avg_display }}</span>
+        <span style="font-size:11px;color:#94a3b8">({{ r.count }} permits)</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if slowest_permits %}
+  <div class="card">
+    <div class="card-header"><h3>🐢 Slowest 5 Permit Approvals</h3></div>
+    <table>
+      <thead><tr><th>Permit#</th><th>Work Order</th><th>Response Time</th></tr></thead>
+      <tbody>
+        {% for p in slowest_permits %}
+        <tr>
+          <td><a href="{% url 'safety_permit_detail' p.pk %}" style="color:#92400e;font-weight:600">{{ p.permit_number }}</a></td>
+          <td style="font-size:12px">{{ p.work_order.wo_number }}</td>
+          <td style="font-weight:700;color:#dc2626">{{ p.response_time_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

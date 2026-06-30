@@ -1,0 +1,72 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Assets — MaintenePro{% endblock %}
+{% block page_title %}Assets{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>Assets ({{ assets.count }})</h2>
+  <a href="{% url 'asset_create' %}" class="btn btn-primary">+ Add Asset</a>
+</div>
+
+<form method="get" class="filters">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name, ID, location..." style="width:250px">
+  <select name="category">
+    <option value="">All Categories</option>
+    {% for v,l in categories %}<option value="{{ v }}" {% if selected_cat == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+  </select>
+  <select name="status">
+    <option value="">All Status</option>
+    <option value="Operational" {% if selected_status == 'Operational' %}selected{% endif %}>Operational</option>
+    <option value="Under Maintenance" {% if selected_status == 'Under Maintenance' %}selected{% endif %}>Under Maintenance</option>
+    <option value="Offline" {% if selected_status == 'Offline' %}selected{% endif %}>Offline</option>
+  </select>
+  <button type="submit" class="btn">Search</button>
+  <a href="{% url 'asset_list' %}" class="btn btn-outline">Clear</a>
+</form>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Asset ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Location</th>
+        <th>Status</th>
+        <th>Last PM</th>
+        <th>Open WOs</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for asset in assets %}
+      <tr>
+        <td><strong style="color:#2563eb">{{ asset.asset_id }}</strong></td>
+        <td><a href="{% url 'asset_detail' asset.pk %}" style="text-decoration:none;color:inherit;font-weight:500">{{ asset.name }}</a></td>
+        <td><span class="badge badge-gray">{{ asset.category }}</span></td>
+        <td class="text-muted">{{ asset.location }}</td>
+        <td>
+          {% if asset.status == 'Operational' %}<span class="badge badge-success">Operational</span>
+          {% elif asset.status == 'Under Maintenance' %}<span class="badge badge-warning">Maintenance</span>
+          {% else %}<span class="badge badge-danger">Offline</span>{% endif %}
+        </td>
+        <td class="text-muted">{{ asset.last_pm_date|date:"d/m/Y"|default:"—" }}</td>
+        <td>
+          {% with cnt=asset.work_orders.filter.count %}
+          <span class="badge {% if cnt > 0 %}badge-info{% else %}badge-gray{% endif %}">
+            {{ asset.work_orders.all|length }}
+          </span>
+          {% endwith %}
+        </td>
+        <td>
+          <a href="{% url 'asset_detail' asset.pk %}" class="btn btn-sm">View</a>
+          <a href="{% url 'asset_edit' asset.pk %}" class="btn btn-sm">Edit</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;padding:32px;color:#64748b">No assets found. <a href="{% url 'asset_create' %}">Add your first asset</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

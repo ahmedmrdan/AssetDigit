@@ -1,0 +1,192 @@
+{% extends 'maintenance/base.html' %}
+{% load i18n %}
+{% get_current_language as CURRENT_LANG %}
+{% block title %}Backup & Restore — MaintenePro{% endblock %}
+{% block page_title %}Backup & Restore{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>💾 {% if CURRENT_LANG == 'ar' %}النسخ الاحتياطي والاستعادة{% else %}Backup & Restore{% endif %}</h2>
+  <a href="{% url 'dashboard' %}" class="btn">← {% if CURRENT_LANG == 'ar' %}رجوع{% else %}Back{% endif %}</a>
+</div>
+
+<!-- Database Stats -->
+<div class="stats-grid" style="margin-bottom:24px">
+  <div class="stat-card">
+    <div class="label">⚙️ Assets</div>
+    <div class="value">{{ stats.assets }}</div>
+    <div class="sub">Machines & Equipment</div>
+  </div>
+  <div class="stat-card info">
+    <div class="label">📋 Work Orders</div>
+    <div class="value">{{ stats.work_orders }}</div>
+    <div class="sub">All WOs</div>
+  </div>
+  <div class="stat-card warning">
+    <div class="label">⚠️ Work Requests</div>
+    <div class="value">{{ stats.work_requests }}</div>
+    <div class="sub">All WRs</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">📅 PM Tasks</div>
+    <div class="value">{{ stats.pm_schedules }}</div>
+    <div class="sub">Scheduled</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">👥 Users</div>
+    <div class="value">{{ stats.users }}</div>
+    <div class="sub">Active accounts</div>
+  </div>
+  <div class="stat-card success">
+    <div class="label">💾 DB Size</div>
+    <div class="value" style="font-size:20px">{{ stats.db_size_mb }} MB</div>
+    <div class="sub">{{ stats.db_size_kb }} KB total</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+  <!-- LEFT: Download Options -->
+  <div>
+    <div class="card" style="border-top:4px solid #16a34a">
+      <div class="card-header"><h3>📥 Download Backup</h3></div>
+      <div class="card-body">
+
+        <!-- Option 1: DB File -->
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:18px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <span style="font-size:28px">🗄️</span>
+            <div>
+              <div style="font-weight:700;font-size:14px">Full Database Backup (.db)</div>
+              <div style="font-size:12px;color:#64748b">Complete backup — includes everything. Use this to restore.</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px" dir="rtl">نسخة احتياطية كاملة — تشمل كل شيء. استخدمها للاستعادة</div>
+            </div>
+          </div>
+          <a href="{% url 'backup_download' %}" class="btn btn-success" style="width:100%;justify-content:center">
+            ⬇️ Download Database File
+          </a>
+          <div style="font-size:11px;color:#64748b;margin-top:8px;text-align:center">
+            File: CMMS_Backup_YYYYMMDD_HHMMSS.db
+          </div>
+        </div>
+
+        <!-- Option 2: JSON -->
+        <div style="background:#dbeafe;border:1px solid #bae6fd;border-radius:10px;padding:18px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <span style="font-size:28px">📄</span>
+            <div>
+              <div style="font-weight:700;font-size:14px">JSON Export</div>
+              <div style="font-size:12px;color:#64748b">All data in JSON format — readable, transferable to any system.</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px" dir="rtl">جميع البيانات بتنسيق JSON — قابل للقراءة والنقل</div>
+            </div>
+          </div>
+          <a href="{% url 'backup_export_json' %}" class="btn" style="width:100%;justify-content:center;background:#2563eb;color:#fff;border-color:#2563eb">
+            ⬇️ Download JSON Export
+          </a>
+        </div>
+
+        <!-- Option 3: Excel/CSV -->
+        <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:18px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <span style="font-size:28px">📊</span>
+            <div>
+              <div style="font-weight:700;font-size:14px">Excel / CSV Export (ZIP)</div>
+              <div style="font-size:12px;color:#64748b">6 CSV files — open in Excel, share with management, print reports.</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px" dir="rtl">6 ملفات CSV — افتحها في Excel، شاركها مع الإدارة</div>
+            </div>
+          </div>
+          <a href="{% url 'backup_export_excel' %}" class="btn" style="width:100%;justify-content:center;background:#d97706;color:#fff;border-color:#d97706">
+            ⬇️ Download Excel Export (ZIP)
+          </a>
+          <div style="font-size:11px;color:#64748b;margin-top:8px">
+            Contains: Assets, Work Orders, Work Requests, PM Schedule, Spare Parts, Users
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Info & Instructions -->
+  <div>
+    <div class="card" style="border-top:4px solid #2563eb">
+      <div class="card-header"><h3>📖 Backup Guide / دليل النسخ الاحتياطي</h3></div>
+      <div class="card-body">
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px">🇬🇧 English Guide</div>
+          <div style="font-size:13px;color:#475569;line-height:1.8">
+            <strong>Which backup to use?</strong><br>
+            • <strong>.db file</strong> = Full backup. Use this to completely restore your system.<br>
+            • <strong>JSON</strong> = Data export. Good for moving to another system.<br>
+            • <strong>Excel/CSV</strong> = For reports and sharing with management.<br><br>
+            <strong>How often to backup?</strong><br>
+            • Daily if you have active operations<br>
+            • Weekly minimum recommended<br><br>
+            <strong>Where to save?</strong><br>
+            • USB drive ✅<br>
+            • Google Drive / OneDrive ✅<br>
+            • Email it to yourself ✅<br>
+            • Second PC ✅
+          </div>
+        </div>
+
+        <hr style="border-color:#e2e8f0;margin:16px 0">
+
+        <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif">
+          <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px">🇸🇦 الدليل العربي</div>
+          <div style="font-size:13px;color:#475569;line-height:1.9">
+            <strong>أي نسخة احتياطية تستخدم؟</strong><br>
+            • <strong>ملف .db</strong> = نسخة احتياطية كاملة. استخدمها لاستعادة النظام بالكامل.<br>
+            • <strong>JSON</strong> = تصدير البيانات. جيد للنقل إلى نظام آخر.<br>
+            • <strong>Excel/CSV</strong> = للتقارير والمشاركة مع الإدارة.<br><br>
+            <strong>كم مرة تأخذ نسخة احتياطية؟</strong><br>
+            • يومياً إذا كانت العمليات نشطة<br>
+            • أسبوعياً كحد أدنى<br><br>
+            <strong>أين تحفظها؟</strong><br>
+            • فلاشة USB ✅<br>
+            • Google Drive / OneDrive ✅<br>
+            • أرسلها لنفسك بالبريد الإلكتروني ✅
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-top:4px solid #dc2626">
+      <div class="card-header"><h3>🔄 How to Restore / كيفية الاستعادة</h3></div>
+      <div class="card-body">
+        <div style="font-size:13px;color:#475569;line-height:1.8;margin-bottom:12px">
+          <strong>EN:</strong> To restore from a .db backup file:<br>
+          1. Stop the server (Ctrl+C)<br>
+          2. Delete the current <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">cmms.db</code> file<br>
+          3. Copy your backup file and rename it to <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">cmms.db</code><br>
+          4. Run <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">python manage.py runserver</code><br>
+          5. All your data is back ✅
+        </div>
+        <hr style="border-color:#e2e8f0;margin:12px 0">
+        <div dir="rtl" style="font-size:13px;color:#475569;line-height:1.9;font-family:Tahoma,Arial,sans-serif">
+          <strong>AR - كيفية الاستعادة من ملف .db:</strong><br>
+          1. أوقف السيرفر (Ctrl+C)<br>
+          2. احذف ملف <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">cmms.db</code> الحالي<br>
+          3. انسخ ملف النسخة الاحتياطية وأعد تسميته إلى <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">cmms.db</code><br>
+          4. شغّل <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">python manage.py runserver</code><br>
+          5. كل بياناتك عادت ✅
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>📊 Database Info</h3></div>
+      <div class="card-body">
+        <div class="detail-row"><span class="detail-label">Database File</span><span class="detail-value" style="font-size:11px;font-family:monospace">cmms.db</span></div>
+        <div class="detail-row"><span class="detail-label">Total Size</span><span class="detail-value">{{ stats.db_size_mb }} MB ({{ stats.db_size_kb }} KB)</span></div>
+        <div class="detail-row"><span class="detail-label">Last Modified</span><span class="detail-value">{{ stats.db_modified|date:"d/m/Y H:i"|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Total Records</span>
+          <span class="detail-value">
+            {{ stats.assets|add:stats.work_orders|add:stats.work_requests|add:stats.pm_schedules|add:stats.users }}+
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

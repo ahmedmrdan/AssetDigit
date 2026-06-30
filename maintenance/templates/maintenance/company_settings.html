@@ -1,0 +1,144 @@
+{% extends 'maintenance/base.html' %}
+{% load i18n %}
+{% get_current_language as CURRENT_LANG %}
+{% block title %}Company Settings — MaintenePro{% endblock %}
+{% block page_title %}Company Settings{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>{% if CURRENT_LANG == 'ar' %}إعدادات الشركة{% else %}Company Settings{% endif %}</h2>
+  <a href="{% url 'dashboard' %}" class="btn">← {% if CURRENT_LANG == 'ar' %}رجوع{% else %}Back{% endif %}</a>
+</div>
+
+<!-- Live Preview Card -->
+<div class="card" style="border:2px dashed #e2e8f0;margin-bottom:24px">
+  <div class="card-header" style="background:#f8fafc">
+    <h3>👁 {% if CURRENT_LANG == 'ar' %}معاينة مباشرة — هذا ما يراه المستخدمون{% else %}Live Preview — What users see in the header{% endif %}</h3>
+  </div>
+  <div class="card-body">
+    <div id="preview-bar" style="background:#1a1a2e;color:#e2e8f0;padding:14px 20px;border-radius:8px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <span id="prev-icon" style="font-size:24px">{{ company.logo_text|default:'🏭' }}</span>
+      <div>
+        <div id="prev-name" style="font-size:15px;font-weight:700;color:#fff">{{ company.factory_name|default:'Factory Name' }}</div>
+        <div id="prev-loc"  style="font-size:12px;color:#94a3b8">📍 {{ company.location|default:'Location' }}</div>
+      </div>
+      {% if company.phone %}
+      <div style="margin-left:auto;font-size:12px;color:#94a3b8">📞 {{ company.phone }}</div>
+      {% endif %}
+    </div>
+    {% if company.welcome_message %}
+    <div id="prev-welcome" style="margin-top:10px;padding:10px 14px;background:#f0fdf4;border-radius:6px;font-size:13px;color:#15803d;border:1px solid #bbf7d0">
+      💬 {{ company.welcome_message }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card">
+      <div class="card-header"><h3>🏭 {% if CURRENT_LANG == 'ar' %}معلومات الشركة (إنجليزي){% else %}Company Information (English){% endif %}</h3></div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Factory / Company Name *</label>
+          {{ form.factory_name }}
+        </div>
+        <div class="form-group">
+          <label>Location / Address</label>
+          {{ form.location }}
+        </div>
+        <div class="form-group">
+          <label>Welcome Message</label>
+          {{ form.welcome_message }}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>🕌 معلومات الشركة (عربي)</h3></div>
+      <div class="card-body" dir="rtl">
+        <div class="form-group">
+          <label>اسم المصنع / الشركة</label>
+          {{ form.factory_name_ar }}
+        </div>
+        <div class="form-group">
+          <label>الموقع / العنوان</label>
+          {{ form.location_ar }}
+        </div>
+        <div class="form-group">
+          <label>رسالة ترحيب</label>
+          {{ form.welcome_message_ar }}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>📞 {% if CURRENT_LANG == 'ar' %}معلومات الاتصال{% else %}Contact & Display{% endif %}</h3></div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Logo Icon / Emoji</label>
+          {{ form.logo_text }}
+          <div style="font-size:11px;color:#94a3b8;margin-top:3px">Use any emoji: 🏭 🏗 ⚡ 🔧 🏢</div>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          {{ form.phone }}
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          {{ form.email }}
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          {{ form.website }}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button type="submit" class="btn btn-primary" style="font-size:14px;padding:10px 20px">
+        💾 {% if CURRENT_LANG == 'ar' %}حفظ الإعدادات{% else %}Save Settings{% endif %}
+      </button>
+    </div>
+
+    {% if company.updated_by %}
+    <div style="margin-top:12px;font-size:12px;color:#94a3b8">
+      Last updated by <strong>{{ company.updated_by }}</strong> on {{ company.updated_at|date:"d/m/Y H:i" }}
+    </div>
+    {% endif %}
+  </form>
+
+  <!-- Right side: info box -->
+  <div>
+    <div class="card" style="border-left:4px solid #e94560">
+      <div class="card-header"><h3>ℹ️ How It Works / كيف يعمل</h3></div>
+      <div class="card-body" style="font-size:13px;line-height:1.8;color:#475569">
+        <p><strong>EN:</strong> Whatever you enter here will appear in the top header bar for all users across the entire system.</p>
+        <hr style="margin:12px 0;border-color:#e2e8f0">
+        <p dir="rtl" style="font-family:Tahoma,Arial,sans-serif"><strong>AR:</strong> كل ما تدخله هنا سيظهر في شريط الرأس العلوي لجميع المستخدمين في النظام.</p>
+        <hr style="margin:12px 0;border-color:#e2e8f0">
+        <ul style="padding-left:16px;line-height:2">
+          <li>Factory name shows in the header</li>
+          <li>Location shows below the name</li>
+          <li>Welcome message shows on dashboard</li>
+          <li>Arabic fields show when Arabic is selected</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>📋 Current Settings</h3></div>
+      <div class="card-body">
+        <div class="detail-row"><span class="detail-label">Factory Name</span><span class="detail-value">{{ company.factory_name|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Arabic Name</span><span class="detail-value" dir="rtl">{{ company.factory_name_ar|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">{{ company.location|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">{{ company.phone|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ company.email|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Website</span><span class="detail-value">{{ company.website|default:"—" }}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

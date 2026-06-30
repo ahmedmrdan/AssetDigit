@@ -1,0 +1,26 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Review Permit{% endblock %}{% block page_title %}Review Safety Permit{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>✅ Review {{ permit.permit_number }}</h2><a href="{% url 'safety_permit_detail' permit.pk %}" class="btn">← Back</a></div>
+<div class="card" style="max-width:640px;border-left:4px solid #f59e0b">
+  <div class="card-header"><h3>Permit Summary</h3></div>
+  <div class="card-body" style="font-size:13px;line-height:1.8">
+    <strong>Work:</strong> {{ permit.work_description }}<br>
+    <strong>Type:</strong> {{ permit.get_permit_type_display }} — <strong>Risk:</strong> {{ permit.risk_level }}<br>
+    <strong>Requested by:</strong> {{ permit.requested_by }} | <strong>Location:</strong> {{ permit.location|default:"—" }}<br>
+    {% if permit.isolation_required %}⚡ <strong>Isolation/LOTO required</strong><br>{% endif %}
+    {% if permit.fire_watch_required %}🔥 <strong>Fire watch required</strong><br>{% endif %}
+    {% if permit.gas_test_required %}🧪 <strong>Gas test required</strong>{% endif %}
+  </div>
+</div>
+<div class="card" style="max-width:640px"><div class="card-body"><form method="post">{% csrf_token %}
+  <div class="form-group"><label>Decision *</label>{{ form.decision }}</div>
+  <div class="form-group"><label>Your Name (Safety Officer) *</label>{{ form.approved_by }}</div>
+  <div class="form-group"><label>Approval Notes</label>{{ form.approval_notes }}</div>
+  <div class="form-group"><label>Rejection Reason (if rejecting)</label>{{ form.rejection_reason }}</div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">Submit Decision</button>
+    <a href="{% url 'safety_permit_detail' permit.pk %}" class="btn">Cancel</a>
+  </div>
+</form></div></div>
+{% endblock %}

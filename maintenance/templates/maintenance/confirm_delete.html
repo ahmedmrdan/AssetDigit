@@ -1,0 +1,25 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Confirm Delete — MaintenePro{% endblock %}
+{% block page_title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;margin:40px auto">
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:32px">
+      <div style="font-size:40px;margin-bottom:16px">⚠️</div>
+      <h3 style="font-size:18px;margin-bottom:8px">Delete {{ type }}?</h3>
+      <p style="color:#64748b;font-size:14px;margin-bottom:24px">
+        Are you sure you want to delete <strong>{{ obj }}</strong>?<br>
+        This action cannot be undone.
+      </p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        </form>
+        <a href="javascript:history.back()" class="btn">Cancel</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

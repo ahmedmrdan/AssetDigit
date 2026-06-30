@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: assetdigit-cmms
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn cmms.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cmms-database
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+databases:
+  - name: cmms-database
+    plan: free

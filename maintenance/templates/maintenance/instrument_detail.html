@@ -1,0 +1,73 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ instrument.name }}{% endblock %}
+{% block page_title %}Instrument Detail{% endblock %}
+{% block content %}
+<div class="page-actions">
+  <h2>🔧 {{ instrument.name }}</h2>
+  <div style="display:flex;gap:8px">
+    <a href="{% url 'calibration_add' instrument.pk %}" class="btn btn-primary btn-sm">+ Add Calibration Record</a>
+    <a href="{% url 'instrument_edit' instrument.pk %}" class="btn btn-sm">Edit</a>
+    <a href="{% url 'instrument_list' %}" class="btn btn-sm">← Back</a>
+  </div>
+</div>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h3>Instrument Information</h3>
+      {% if instrument.is_overdue %}<span class="badge badge-danger">🔴 OVERDUE</span>{% else %}<span class="badge badge-success">✅ Active</span>{% endif %}
+    </div>
+    <div class="card-body">
+      <div class="detail-row"><span class="detail-label">Instrument ID</span><span class="detail-value" style="color:#2563eb;font-weight:700">{{ instrument.instrument_id }}</span></div>
+      <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">{{ instrument.instrument_type }}</span></div>
+      <div class="detail-row"><span class="detail-label">Manufacturer</span><span class="detail-value">{{ instrument.manufacturer|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Model</span><span class="detail-value">{{ instrument.model_number|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Serial Number</span><span class="detail-value">{{ instrument.serial_number|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Range</span><span class="detail-value">{{ instrument.range_min|default:"—" }} – {{ instrument.range_max|default:"—" }} {{ instrument.unit }}</span></div>
+      <div class="detail-row"><span class="detail-label">Accuracy</span><span class="detail-value">{{ instrument.accuracy|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">{{ instrument.location|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Responsible</span><span class="detail-value">{{ instrument.responsible_person|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">ISO Reference</span><span class="detail-value">{{ instrument.iso_reference }}</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Calibration Schedule</h3></div>
+    <div class="card-body">
+      <div class="detail-row"><span class="detail-label">Frequency</span><span class="detail-value"><span class="badge badge-purple">{{ instrument.calibration_frequency }}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Last Calibration</span><span class="detail-value">{{ instrument.last_calibration|date:"d/m/Y"|default:"Never" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Next Due</span><span class="detail-value" style="{% if instrument.is_overdue %}color:#dc2626;font-weight:700{% endif %}">{{ instrument.next_calibration|date:"d/m/Y"|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Days Until Due</span>
+        <span class="detail-value">
+          {% if instrument.days_until_due is not None %}
+            {% if instrument.days_until_due < 0 %}<span style="color:#dc2626;font-weight:700">{{ instrument.days_until_due }} days (OVERDUE)</span>
+            {% elif instrument.days_until_due <= 30 %}<span style="color:#d97706;font-weight:600">{{ instrument.days_until_due }} days</span>
+            {% else %}<span style="color:#16a34a">{{ instrument.days_until_due }} days</span>{% endif %}
+          {% else %}—{% endif %}
+        </span>
+      </div>
+      <div class="detail-row"><span class="detail-label">Cal Laboratory</span><span class="detail-value">{{ instrument.calibration_lab|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">{{ instrument.status }}</span></div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header"><h3>Calibration History</h3><a href="{% url 'calibration_add' instrument.pk %}" class="btn btn-sm btn-primary">+ Add Record</a></div>
+  <table><thead><tr><th>Date</th><th>Next Due</th><th>Result</th><th>Performed By</th><th>Lab</th><th>Certificate</th><th>Before</th><th>After</th><th>Temp°C</th></tr></thead>
+  <tbody>{% for r in records %}
+  <tr>
+    <td style="font-weight:600">{{ r.calibration_date|date:"d/m/Y" }}</td>
+    <td>{{ r.next_due|date:"d/m/Y" }}</td>
+    <td>{% if r.result == 'Pass' %}<span class="badge badge-success">✅ Pass</span>
+        {% elif r.result == 'Fail' %}<span class="badge badge-danger">❌ Fail</span>
+        {% elif r.result == 'Adjusted' %}<span class="badge badge-warning">🔧 Adjusted</span>
+        {% else %}<span class="badge badge-gray">{{ r.result }}</span>{% endif %}
+    </td>
+    <td style="font-size:12px">{{ r.performed_by }}</td>
+    <td style="font-size:12px">{{ r.lab_name|default:"—" }}</td>
+    <td style="font-size:12px;color:#2563eb">{{ r.certificate_number|default:"—" }}</td>
+    <td style="font-size:12px">{{ r.reading_before|default:"—" }}</td>
+    <td style="font-size:12px">{{ r.reading_after|default:"—" }}</td>
+    <td style="font-size:12px">{{ r.temperature_c|default:"—" }}</td>
+  </tr>
+  {% empty %}<tr><td colspan="9" style="text-align:center;padding:24px;color:#64748b">No calibration records yet.</td></tr>{% endfor %}
+  </tbody></table>
+</div>
+{% endblock %}

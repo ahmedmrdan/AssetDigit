@@ -1,0 +1,73 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }} — MaintenePro{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>{{ title }}</h2>
+  <a href="{% url 'wo_list' %}" class="btn">← Back to Work Orders</a>
+</div>
+
+<div class="card" style="max-width:760px">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group col-span-2">
+          <label>Title *</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div style="color:#dc2626;font-size:12px;margin-top:3px">{{ form.title.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label>Asset</label>
+          {{ form.asset }}
+        </div>
+        <div class="form-group">
+          <label>Work Order Type</label>
+          {{ form.wo_type }}
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          {{ form.priority }}
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          {{ form.status }}
+        </div>
+        <div class="form-group">
+          <label>Assigned To</label>
+          {{ form.assigned_to }}
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          {{ form.due_date }}
+        </div>
+        <div class="form-group">
+          <label>Estimated Hours</label>
+          {{ form.estimated_hours }}
+        </div>
+        <div class="form-group">
+          <label>Actual Hours</label>
+          {{ form.actual_hours }}
+        </div>
+        <div class="form-group">
+          <label>Labor Cost (EGP)</label>
+          {{ form.labor_cost }}
+        </div>
+        <div class="form-group col-span-2">
+          <label>Description</label>
+          {{ form.description }}
+        </div>
+        <div class="form-group col-span-2">
+          <label>Notes</label>
+          {{ form.notes }}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button type="submit" class="btn btn-primary">Save Work Order</button>
+        <a href="{% url 'wo_list' %}" class="btn">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

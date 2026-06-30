@@ -1,0 +1,24 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}Internal Audits{% endblock %}{% block page_title %}Internal Audits{% endblock %}
+{% block content %}
+<div class="page-actions"><h2>🔍 Internal Audits ({{ audits.count }})</h2><a href="{% url 'audit_create' %}" class="btn btn-primary">+ Schedule Audit</a></div>
+<div class="card"><table>
+  <thead><tr><th>Audit#</th><th>Title</th><th>Standard</th><th>Type</th><th>Department</th><th>Lead Auditor</th><th>Planned Date</th><th>Findings</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>{% for a in audits %}
+  <tr>
+    <td><a href="{% url 'audit_detail' a.pk %}" style="color:#2563eb;font-weight:700">{{ a.audit_number }}</a></td>
+    <td style="font-weight:500">{{ a.title|truncatechars:35 }}</td>
+    <td><span class="badge badge-purple" style="font-size:10px">{{ a.iso_standard }}</span></td>
+    <td><span class="badge badge-gray" style="font-size:10px">{{ a.audit_type }}</span></td>
+    <td style="font-size:12px">{{ a.department }}</td>
+    <td style="font-size:12px">{{ a.lead_auditor }}</td>
+    <td style="font-size:12px">{{ a.planned_date|date:"d/m/Y" }}</td>
+    <td style="font-size:12px;text-align:center">
+      {% if a.major_nc_count %}<span class="badge badge-danger">{{ a.major_nc_count }}M</span>{% endif %}
+      {% if a.minor_nc_count %}<span class="badge badge-warning">{{ a.minor_nc_count }}m</span>{% endif %}
+    </td>
+    <td>{% if a.status == 'Planned' %}<span class="badge badge-info">Planned</span>{% elif a.status == 'Completed' %}<span class="badge badge-success">Completed</span>{% elif a.status == 'In Progress' %}<span class="badge badge-warning">In Progress</span>{% else %}<span class="badge badge-gray">Cancelled</span>{% endif %}</td>
+    <td><a href="{% url 'audit_detail' a.pk %}" class="btn btn-sm">View</a><a href="{% url 'audit_edit' a.pk %}" class="btn btn-sm">Edit</a></td>
+  </tr>
+  {% empty %}<tr><td colspan="10" style="text-align:center;padding:32px;color:#64748b">No audits scheduled yet.</td></tr>{% endfor %}</tbody>
+</table></div>{% endblock %}

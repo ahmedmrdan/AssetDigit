@@ -1,0 +1,103 @@
+{% extends 'maintenance/base.html' %}
+{% block title %}{{ title }} — MaintenePro{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h2>{{ title }}</h2>
+  <a href="{% url 'wr_list' %}" class="btn">← Back to Work Requests</a>
+</div>
+
+<div class="card" style="max-width:820px">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div style="background:#fff5f7;border:1px solid #fecdd3;border-radius:8px;padding:14px;margin-bottom:20px;font-size:13px;color:#be123c">
+        ⚠️ Fill all details accurately — this information will be transferred directly to the Work Order.
+      </div>
+
+      <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">📋 Basic Information</h4>
+      <div class="form-grid">
+        <div class="form-group col-span-2">
+          <label>Request Title *</label>
+          {{ form.title }}
+        </div>
+        <div class="form-group">
+          <label>Machine / Asset</label>
+          {{ form.asset }}
+        </div>
+        <div class="form-group">
+          <label>Location (if different)</label>
+          {{ form.location }}
+        </div>
+      </div>
+
+      <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin:16px 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">⚠️ Alarm & Breakdown Details</h4>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Alarm Type *</label>
+          {{ form.alarm_type }}
+        </div>
+        <div class="form-group">
+          <label>Alarm / Error Code (from HMI/PLC)</label>
+          {{ form.alarm_code }}
+        </div>
+        <div class="form-group">
+          <label>Breakdown Type *</label>
+          {{ form.breakdown_type }}
+        </div>
+        <div class="form-group">
+          <label>Priority *</label>
+          {{ form.priority }}
+        </div>
+        <div class="form-group">
+          <label>Breakdown Date & Time *</label>
+          {{ form.breakdown_time }}
+        </div>
+        <div class="form-group">
+          <label>Estimated Downtime (hours)</label>
+          {{ form.downtime_hours }}
+        </div>
+      </div>
+
+      <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin:16px 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">🔍 Problem Details</h4>
+      <div class="form-grid">
+        <div class="form-group col-span-2">
+          <label>Problem Description *</label>
+          {{ form.description }}
+        </div>
+        <div class="form-group col-span-2">
+          <label>Observed Symptoms</label>
+          {{ form.symptoms }}
+        </div>
+        <div class="form-group col-span-2">
+          <label>Production / Safety Impact</label>
+          {{ form.production_impact }}
+        </div>
+      </div>
+
+      <h4 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin:16px 0 12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0">👤 Reporter Information</h4>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Reported By *</label>
+          {{ form.reported_by }}
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          {{ form.reporter_phone }}
+        </div>
+        <div class="form-group col-span-2">
+          <label>Department</label>
+          {{ form.reporter_department }}
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button type="submit" class="btn btn-primary">Submit Work Request</button>
+        <a href="{% url 'wr_list' %}" class="btn">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

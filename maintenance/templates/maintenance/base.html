@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as CURRENT_LANG %}
+<html lang="{{ CURRENT_LANG }}" dir="{% if CURRENT_LANG == 'ar' %}rtl{% else %}ltr{% endif %}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MaintenePro CMMS{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sidebar-w: 220px;
+      --primary: #1a1a2e;
+      --accent: #e94560;
+      --accent2: #0f3460;
+      --bg: #f4f6fb;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --info: #2563eb;
+      --radius: 10px;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; font-size: 14px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: var(--sidebar-w); background: var(--primary); color: #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+    .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo .brand { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
+    .sidebar-logo .brand span { color: var(--accent); }
+    .sidebar-logo .sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .sidebar-user { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; }
+    .user-name { font-size: 12px; color: #cbd5e1; font-weight: 500; }
+    .sidebar-nav { padding: 12px 0; flex: 1; }
+    .nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #475569; padding: 12px 18px 4px; font-weight: 600; }
+    .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 18px; color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+    .nav-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .nav-link.active { color: #fff; background: rgba(233,69,96,0.15); border-left-color: var(--accent); }
+    .nav-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .sidebar-footer { padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-footer a { color: #64748b; text-decoration: none; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+    .sidebar-footer a:hover { color: #94a3b8; }
+
+    /* ── MAIN ── */
+    .main-wrapper { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-title { font-size: 15px; font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-date { font-size: 12px; color: var(--muted); }
+    .main-content { padding: 24px; flex: 1; }
+
+    /* ── COMPONENTS ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); border-radius: var(--radius); padding: 18px 20px; border: 1px solid var(--border); }
+    .stat-card .label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .stat-card.danger .value { color: var(--danger); }
+    .stat-card.warning .value { color: var(--warning); }
+    .stat-card.success .value { color: var(--success); }
+    .stat-card.info .value { color: var(--info); }
+
+    .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; }
+    .card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-header h3 { font-size: 14px; font-weight: 600; }
+    .card-body { padding: 18px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 14px; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); background: #f8fafc; }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+
+    .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .badge-success { background: #dcfce7; color: #15803d; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger  { background: #fee2e2; color: #991b1b; }
+    .badge-info    { background: #dbeafe; color: #1e40af; }
+    .badge-gray    { background: #f1f5f9; color: #475569; }
+    .badge-purple  { background: #f3e8ff; color: #6b21a8; }
+
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); transition: all 0.15s; font-family: inherit; }
+    .btn:hover { background: #f1f5f9; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: #c73652; border-color: #c73652; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-success:hover { background: #15803d; }
+    .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-outline { background: transparent; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; font-family: inherit;
+      background: var(--card-bg); color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.1);
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .col-span-2 { grid-column: span 2; }
+
+    .messages { margin-bottom: 16px; }
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .alert-error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+    .page-actions { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .page-actions h2 { font-size: 20px; font-weight: 700; }
+    .filters { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filters input, .filters select { padding: 7px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--card-bg); }
+    .filters input:focus, .filters select:focus { outline: none; border-color: var(--accent); }
+
+    .empty-state { text-align: center; padding: 48px; color: var(--muted); }
+    .empty-state svg { width: 48px; height: 48px; margin: 0 auto 12px; display: block; opacity: 0.3; }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--muted); font-weight: 500; }
+    .detail-value { font-weight: 500; text-align: right; }
+
+    .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+
+    .overdue { color: var(--danger) !important; font-weight: 600; }
+    .text-muted { color: var(--muted); }
+    .text-right { text-align: right; }
+    .mt-2 { margin-top: 8px; }
+    .mb-0 { margin-bottom: 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-wrapper { margin-left: 0; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .col-span-2 { grid-column: span 1; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+
+  {% if CURRENT_LANG == 'ar' %}
+  <style>
+    /* ── RTL / ARABIC OVERRIDES ── */
+    body { font-family: 'Segoe UI', Tahoma, 'Arabic Typesetting', Arial, sans-serif; direction: rtl; }
+    .sidebar { right: 0; left: auto; border-right: none; border-left: 0.5px solid rgba(255,255,255,0.1); }
+    .main-wrapper { margin-left: 0; margin-right: var(--sidebar-w); }
+    .nav-link { border-left: none; border-right: 3px solid transparent; padding: 9px 18px; }
+    .nav-link.active { border-left: none; border-right-color: var(--accent); }
+    .nav-link svg { margin-left: 10px; margin-right: 0; }
+    .page-actions { flex-direction: row-reverse; }
+    .filters { flex-direction: row-reverse; }
+    th, td { text-align: right; }
+    .badge { direction: ltr; }
+    .detail-row { flex-direction: row-reverse; }
+    .detail-value { text-align: left; }
+    .card-header { flex-direction: row-reverse; }
+    .stat-card .label { flex-direction: row-reverse; }
+    .topbar { flex-direction: row-reverse; }
+    .topbar-right { flex-direction: row-reverse; }
+    .form-group label { text-align: right; }
+    .btn { flex-direction: row-reverse; }
+    .sidebar-footer a { flex-direction: row-reverse; }
+    .alert { flex-direction: row-reverse; }
+  </style>
+  {% endif %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+
+<!-- AUTO-LOGOUT WARNING POPUP -->
+<div id="logout-warning" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:32px;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="font-size:48px;margin-bottom:12px">⏰</div>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;color:#dc2626">Session Expiring Soon</h3>
+    <p style="font-size:14px;color:#475569;margin-bottom:8px">You will be logged out in <strong>1 minute</strong> due to inactivity.</p>
+    <p dir="rtl" style="font-size:13px;color:#64748b;font-family:Tahoma,Arial,sans-serif;margin-bottom:20px">سيتم تسجيل خروجك خلال دقيقة واحدة بسبب عدم النشاط</p>
+    <button onclick="resetTimer()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:12px">
+      ✅ I'm still here / أنا هنا
+    </button>
+  </div>
+</div>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">
+      {% if company %}{{ company.logo_text|default:'⚙️' }}{% else %}⚙️{% endif %}
+      {% if CURRENT_LANG == 'ar' and company and company.factory_name_ar %}
+        <span style="font-size:13px">{{ company.factory_name_ar }}</span>
+      {% elif company and company.factory_name and company.factory_name != 'My Factory' %}
+        <span style="font-size:13px">{{ company.factory_name }}</span>
+      {% else %}
+        Asset<span>digit</span>
+      {% endif %}
+    </div>
+    <div class="sub">
+      {% if CURRENT_LANG == 'ar' %}نظام إدارة الصيانة{% else %}Industrial CMMS{% endif %}
+      {% if company and company.location %}
+      <div style="font-size:10px;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        📍 {% if CURRENT_LANG == 'ar' and company.location_ar %}{{ company.location_ar }}{% else %}{{ company.location }}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">{{ user.username|first|upper }}</div>
+    <div>
+      <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+      <div style="font-size:11px;color:#475569">
+        {% if user.profile.position %}{{ user.profile.position }}
+        {% else %}{% if CURRENT_LANG == 'ar' %}رئيس القسم{% else %}Section Head{% endif %}{% endif %}
+      </div>
+      {% if user.profile.department %}
+      <div style="font-size:10px;color:#334155">{{ user.profile.department }}</div>
+      {% endif %}
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">{% if CURRENT_LANG == 'ar' %}الرئيسية{% else %}Main{% endif %}</div>
+    <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      {% if CURRENT_LANG == 'ar' %}لوحة التحكم{% else %}Dashboard{% endif %}
+    </a>
+    <div class="nav-section">{% if CURRENT_LANG == 'ar' %}الأصول{% else %}Assets{% endif %}</div>
+    <a href="{% url 'asset_list' %}" class="nav-link {% if 'asset' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      {% if CURRENT_LANG == 'ar' %}الأصول والمعدات{% else %}Assets{% endif %}
+    </a>
+    <div class="nav-section">{% if CURRENT_LANG == 'ar' %}الصيانة{% else %}Maintenance{% endif %}</div>
+    <a href="{% url 'wr_list' %}" class="nav-link {% if 'wr' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      {% if CURRENT_LANG == 'ar' %}طلبات العمل{% else %}Work Requests{% endif %}
+    </a>
+    <a href="{% url 'wo_list' %}" class="nav-link {% if 'wo' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      {% if CURRENT_LANG == 'ar' %}أوامر العمل{% else %}Work Orders{% endif %}
+    </a>
+    {% if user.is_staff or user.profile.can_access_safety %}
+    <a href="{% url 'safety_permit_list' %}" class="nav-link {% if 'safety' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      {% if CURRENT_LANG == 'ar' %}تصاريح السلامة{% else %}Safety Permits{% endif %}
+    </a>
+    {% endif %}
+    <a href="{% url 'pm_list' %}" class="nav-link {% if 'pm' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      {% if CURRENT_LANG == 'ar' %}جدول الصيانة الوقائية{% else %}PM Schedule{% endif %}
+    </a>
+    <div class="nav-section">{% if CURRENT_LANG == 'ar' %}نظام ISO{% else %}ISO Management{% endif %}</div>
+    <a href="{% url 'iso_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'iso_dashboard' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      {% if CURRENT_LANG == 'ar' %}لوحة ISO{% else %}ISO Dashboard{% endif %}
+    </a>
+    <a href="{% url 'instrument_list' %}" class="nav-link {% if 'instrument' in request.resolver_match.url_name or 'calibration' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      {% if CURRENT_LANG == 'ar' %}المعايرة{% else %}Calibration{% endif %}
+    </a>
+    <a href="{% url 'ncr_list' %}" class="nav-link {% if 'ncr' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      {% if CURRENT_LANG == 'ar' %}عدم المطابقة{% else %}NCR / Corrective Actions{% endif %}
+    </a>
+    <a href="{% url 'iso_doc_list' %}" class="nav-link {% if 'iso_doc' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      {% if CURRENT_LANG == 'ar' %}وثائق ISO{% else %}ISO Documents{% endif %}
+    </a>
+    <a href="{% url 'audit_list' %}" class="nav-link {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      {% if CURRENT_LANG == 'ar' %}التدقيق الداخلي{% else %}Internal Audits{% endif %}
+    </a>
+    <a href="{% url 'env_list' %}" class="nav-link {% if 'env' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M12 22V12"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>
+      {% if CURRENT_LANG == 'ar' %}الجوانب البيئية{% else %}Environmental (14001){% endif %}
+    </a>
+    <div class="nav-section">{% if CURRENT_LANG == 'ar' %}الصيانة المتقدمة{% else %}Advanced Maintenance{% endif %}</div>
+    <a href="{% url 'predictive_list' %}" class="nav-link {% if 'predictive' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      {% if CURRENT_LANG == 'ar' %}الصيانة التنبؤية{% else %}Predictive{% endif %}
+    </a>
+    <a href="{% url 'proactive_list' %}" class="nav-link {% if 'proactive' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      {% if CURRENT_LANG == 'ar' %}الصيانة الاستباقية{% else %}Proactive{% endif %}
+    </a>
+    <a href="{% url 'bda_list' %}" class="nav-link {% if 'bda' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      {% if CURRENT_LANG == 'ar' %}تحليل الأعطال{% else %}Breakdown Analysis{% endif %}
+    </a>
+    <a href="{% url 'facility_list' %}" class="nav-link {% if 'facility' in request.resolver_match.url_name or 'service_request' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      {% if CURRENT_LANG == 'ar' %}إدارة المنشآت{% else %}Facilities{% endif %}
+    </a>
+    <div class="nav-section">{% if CURRENT_LANG == 'ar' %}التحليلات{% else %}Analytics{% endif %}</div>
+    <a href="{% url 'reports' %}" class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      {% if CURRENT_LANG == 'ar' %}التقارير{% else %}Reports{% endif %}
+    </a>
+    <div class="nav-section">{% if CURRENT_LANG == 'ar' %}النظام{% else %}System{% endif %}</div>
+    <a href="/admin/" class="nav-link">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+      {% if CURRENT_LANG == 'ar' %}لوحة الإدارة{% else %}Admin Panel{% endif %}
+    </a>
+    {% if user.is_staff %}
+    <a href="{% url 'company_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'company_settings' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      {% if CURRENT_LANG == 'ar' %}إعدادات الشركة{% else %}Company Settings{% endif %}
+    </a>
+    <a href="{% url 'backup_page' %}" class="nav-link {% if request.resolver_match.url_name == 'backup_page' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      {% if CURRENT_LANG == 'ar' %}النسخ الاحتياطي{% else %}Backup & Restore{% endif %}
+    </a>
+    <a href="{% url 'user_list' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      {% if CURRENT_LANG == 'ar' %}إدارة المستخدمين{% else %}User Management{% endif %}
+    </a>
+    {% endif %}
+  </nav>
+  <div class="sidebar-footer">
+    <a href="{% url 'logout' %}">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      {% if CURRENT_LANG == 'ar' %}تسجيل الخروج{% else %}Logout{% endif %} ({{ user.username }})
+    </a>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="topbar-right">
+      <span class="topbar-date" id="topbar-date"></span>
+
+      <!-- LANGUAGE SWITCHER -->
+      <form action="/i18n/setlang/" method="post" style="display:inline" id="lang-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        {% get_current_language as CURRENT_LANG %}
+        {% if CURRENT_LANG == 'ar' %}
+          <input type="hidden" name="language" value="en">
+          <button type="submit" class="btn btn-sm" style="font-size:12px;padding:5px 10px" title="Switch to English">
+            🇬🇧 English
+          </button>
+        {% else %}
+          <input type="hidden" name="language" value="ar">
+          <button type="submit" class="btn btn-sm" style="font-size:12px;padding:5px 10px" title="التبديل إلى العربية">
+            🇸🇦 عربي
+          </button>
+        {% endif %}
+      </form>
+
+      <!-- NOTIFICATION BELL -->
+      <div style="position:relative" id="notif-wrapper">
+        <button onclick="toggleNotifDropdown()" id="notif-btn" style="background:none;border:1px solid var(--border);border-radius:8px;padding:7px 10px;cursor:pointer;position:relative;display:flex;align-items:center;gap:6px;color:var(--text)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span id="notif-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:#e94560;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1">0</span>
+        </button>
+
+        <!-- Dropdown -->
+        <div id="notif-dropdown" style="display:none;position:absolute;right:0;top:44px;width:360px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.12);z-index:999;overflow:hidden">
+          <div style="padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:600">Notifications</span>
+            <div style="display:flex;gap:8px">
+              <a href="{% url 'notification_mark_all_read' %}" style="font-size:11px;color:#2563eb;text-decoration:none">Mark all read</a>
+              <a href="{% url 'notification_list' %}" style="font-size:11px;color:#64748b;text-decoration:none">View all</a>
+            </div>
+          </div>
+          <div id="notif-list" style="max-height:340px;overflow-y:auto">
+            <div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px" id="notif-empty">
+              🔔 No new notifications
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <a href="{% url 'wo_create' %}" class="btn btn-primary btn-sm">+ New WO</a>
+    </div>
+  </div>
+  <div class="main-content">
+    {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script>
+  const d = new Date();
+  const el = document.getElementById('topbar-date');
+  if(el) el.textContent = d.toLocaleDateString('en-GB', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  // ── AUTO LOGOUT AFTER 3 MINUTES INACTIVITY ────────────────────────────
+  let logoutTimer;
+  let warningTimer;
+  const TIMEOUT_MS  = 3 * 60 * 1000; // 3 minutes
+  const WARNING_MS  = 2 * 60 * 1000; // warn at 2 minutes
+  const LOGOUT_URL  = '{% url "logout" %}';
+
+  function resetTimer() {
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    // Hide warning if visible
+    const warn = document.getElementById('logout-warning');
+    if (warn) warn.style.display = 'none';
+    // Set warning at 2 min
+    warningTimer = setTimeout(() => {
+      const w = document.getElementById('logout-warning');
+      if (w) w.style.display = 'flex';
+    }, WARNING_MS);
+    // Set logout at 3 min
+    logoutTimer = setTimeout(() => {
+      window.location.href = LOGOUT_URL;
+    }, TIMEOUT_MS);
+  }
+
+  // Listen for any user activity
+  ['mousemove','keydown','click','scroll','touchstart'].forEach(evt => {
+    document.addEventListener(evt, resetTimer, {passive: true});
+  });
+
+  resetTimer(); // Start timer on page load
+
+  // ── NOTIFICATION BELL ─────────────────────────────
+  const PRIORITY_COLORS = {critical:'#fee2e2', high:'#fff7ed', normal:'#f0f9ff', low:'#f8fafc'};
+  const PRIORITY_BORDER = {critical:'#fca5a5', high:'#fed7aa', normal:'#bae6fd', low:'#e2e8f0'};
+  const TYPE_ICONS = {
+    wr_new:'🚨', wr_converted:'✅', wr_rejected:'❌',
+    wo_assigned:'📋', wo_completed:'🏁', wo_overdue:'⏰',
+    pm_due:'📅', pm_overdue:'⚠️'
+  };
+
+  function toggleNotifDropdown(){
+    const d = document.getElementById('notif-dropdown');
+    d.style.display = d.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Close dropdown on outside click
+  document.addEventListener('click', function(e){
+    if(!document.getElementById('notif-wrapper').contains(e.target)){
+      document.getElementById('notif-dropdown').style.display = 'none';
+    }
+  });
+
+  function fetchNotifications(){
+    fetch('{% url "notification_count_api" %}')
+      .then(r => r.json())
+      .then(data => {
+        const badge = document.getElementById('notif-badge');
+        if(data.count > 0){
+          badge.style.display = 'flex';
+          badge.textContent = data.count > 99 ? '99+' : data.count;
+        } else {
+          badge.style.display = 'none';
+        }
+        const list = document.getElementById('notif-list');
+        const empty = document.getElementById('notif-empty');
+        if(data.recent && data.recent.length > 0){
+          if(empty) empty.style.display = 'none';
+          list.innerHTML = data.recent.map(n => `
+            <a href="/notifications/${n.id}/read/" style="display:block;padding:12px 16px;border-bottom:1px solid #f1f5f9;text-decoration:none;background:${PRIORITY_COLORS[n.priority]||'#f0f9ff'};border-left:3px solid ${PRIORITY_BORDER[n.priority]||'#bae6fd'};transition:background 0.1s">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+                <div style="font-size:13px;font-weight:600;color:#1e293b;line-height:1.3">
+                  ${TYPE_ICONS[n.notif_type]||'🔔'} ${n.title}
+                </div>
+                <span style="font-size:10px;color:#94a3b8;white-space:nowrap;margin-top:2px">${n.created_at}</span>
+              </div>
+              <div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.4;white-space:pre-wrap">${n.message.substring(0,120)}${n.message.length>120?'…':''}</div>
+            </a>
+          `).join('') + `<a href="{% url 'notification_list' %}" style="display:block;text-align:center;padding:10px;font-size:12px;color:#2563eb;text-decoration:none;border-top:1px solid #e2e8f0">View all notifications →</a>`;
+        } else {
+          if(empty) empty.style.display = 'block';
+          list.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">🔔 No new notifications</div>';
+        }
+      }).catch(()=>{});
+  }
+
+  // Poll every 30 seconds
+  fetchNotifications();
+  setInterval(fetchNotifications, 30000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
